@@ -1,0 +1,2 @@
+websocket-client~=1.5.1
+rel~=0.4.8

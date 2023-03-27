@@ -5,6 +5,7 @@ import rel
 import json
 import hmac
 import os   
+from time import gmtime, strftime
 
 api_key =  os.environ['BYBIT_MONITOR_API_KEY']
 api_secret = os.environ['BYBIT_MONITOR_API_SECRET']
@@ -15,17 +16,23 @@ signature = str(hmac.new(
     bytes(f"GET/realtime{expires}", "utf-8"), digestmod="sha256"
 ).hexdigest())
 
+def current_utc_time() -> str:
+    return strftime("[UTC %Y-%m-%d %H:%M:%S]", gmtime())
+
+def log(msg: str) -> None:
+    print(current_utc_time(), msg)
+
 def on_message(ws, message):
-    print(message)
+    log(message)
 
 def on_error(ws, error):
-    print(error)
+    log(error)
 
 def on_close(ws, close_status_code, close_msg):
-    print("### closed ###")
+    log("### closed ###")
 
 def on_open(ws):
-    print("Opened connection")
+    log("Opened connection")
     ws.send(
         json.dumps({
             "op": "auth",
@@ -47,6 +54,6 @@ if __name__ == "__main__":
                               on_error=on_error,
                               on_close=on_close)
     
-    ws.run_forever(dispatcher=rel, reconnect=5)  # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
+    ws.run_forever(dispatcher=rel, reconnect=5) # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
     rel.signal(2, rel.abort)  # Keyboard Interrupt
     rel.dispatch()
