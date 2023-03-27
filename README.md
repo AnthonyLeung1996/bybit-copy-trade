@@ -9,8 +9,7 @@ pip install -r requirements.txt
 
 try remove existing packages and reinstall if something go wrong:
 ```
-pip uninstall --yes websocket-client
-pip uninstall --yes rel
+pip uninstall -r requirements.txt -y
 pip install -r requirements.txt
 ```
 
@@ -24,7 +23,7 @@ python bybitMontior.py
 or 
 
 ```
-python bybitMontior.py > trades.log
+python bybitMontior.py >> trades.log
 ```
 
 ## Environment variables vequired
