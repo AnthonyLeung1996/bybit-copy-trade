@@ -4,9 +4,10 @@ import time
 import rel
 import json
 import hmac
+import os   
 
-api_key = "RGhYXtjVCByTGtG1WE"
-api_secret = "Xp4PBajAuDtku7yVSdOdc4mTdFXma0SkV9Iu"
+api_key =  os.environ['BYBIT_MONITOR_API_KEY']
+api_secret = os.environ['BYBIT_MONITOR_API_SECRET']
 expires = 1681662381000
 
 signature = str(hmac.new(
