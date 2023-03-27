@@ -47,6 +47,6 @@ if __name__ == "__main__":
                               on_error=on_error,
                               on_close=on_close)
     
-    ws.run_forever(dispatcher=rel)  # Set dispatcher to automatic reconnection
+    ws.run_forever(dispatcher=rel, reconnect=5) # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
     rel.signal(2, rel.abort)  # Keyboard Interrupt
     rel.dispatch()
