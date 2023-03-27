@@ -1,29 +1,36 @@
 # bybit-monitor
 
+## Python version
+Following setting works for me, other similar versions may also works:
+```
+Python 3.11.2
+pip 22.3.1
+```
+
 ## Install dependencies
 
 Run following command:
 ```
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 try remove existing packages and reinstall if something go wrong:
 ```
-pip uninstall -r requirements.txt -y
-pip install -r requirements.txt
+pip3 uninstall -r requirements.txt -y
+pip3 install -r requirements.txt
 ```
 
 
 ## Run application
 
 ```
-python bybitMontior.py
+python3 bybitMontior.py
 ```
 
 or 
 
 ```
-python bybitMontior.py >> trades.log
+python3 bybitMontior.py >> trades.log
 ```
 
 ## Environment variables vequired
