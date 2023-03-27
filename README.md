@@ -7,6 +7,26 @@ Run following command:
 pip install -r requirements.txt
 ```
 
+try remove existing packages and reinstall if something go wrong:
+```
+pip uninstall --yes websocket-client
+pip uninstall --yes rel
+pip install -r requirements.txt
+```
+
+
+## Run application
+
+```
+python bybitMontior.py
+```
+
+or 
+
+```
+python bybitMontior.py > trades.log
+```
+
 ## Environment variables vequired
 
 This program require API key credentials of your ByBit account:
