@@ -4,6 +4,7 @@ import json
 import hmac
 import os   
 import logging
+import time
 
 logging.basicConfig(filename='monitor.log',
     filemode='a',
@@ -22,7 +23,11 @@ signature = str(hmac.new(
 ).hexdigest())
 
 def on_message(ws, message):
-    logging.info(message)
+    if 'topic' in message:
+        # trade message
+        logging.info(message)
+    else:
+        logging.debug(message)
 
 def on_error(ws, error):
     logging.error(error)
@@ -37,22 +42,36 @@ def on_open(ws):
             "op": "auth",
             "args": [api_key, expires, signature]
         })        
-        )
+    )
     ws.send(
-    json.dumps({
-        "op": "subscribe",
-        "args": ["order"]
-    }))
+        json.dumps({
+            "op": "subscribe",
+            "args": ["order"]
+        })
+    )
     
+class CustomWebSocketApp(websocket.WebSocketApp):
+    def _send_ping(self):
+        if self.stop_ping.wait(self.ping_interval):
+            return
+        while not self.stop_ping.wait(self.ping_interval):
+            if self.sock:
+                self.last_ping_tm = time.time()
+                try:
+                    self.sock.ping(self.ping_payload)
+                    self.sock.send(self.ping_payload)
+                except Exception as ex:
+                    logging.debug("Failed to send ping: %s", ex)
 
 if __name__ == "__main__":
-#    websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://stream.bybit.com/v5/private",
+    ping_body = json.dumps({
+        "op": "ping"
+    })
+    ws = CustomWebSocketApp("wss://stream.bybit.com/v5/private",
                               on_open=on_open,
                               on_message=on_message,
                               on_error=on_error,
                               on_close=on_close)
-    
-    ws.run_forever(ping_interval=60, dispatcher=rel, reconnect=5) # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
+    ws.run_forever(ping_interval=60, ping_payload=ping_body, dispatcher=rel, reconnect=5) # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
     rel.signal(2, rel.abort)  # Keyboard Interrupt
     rel.dispatch()
