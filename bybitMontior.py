@@ -58,7 +58,7 @@ class CustomWebSocketApp(websocket.WebSocketApp):
             if self.sock:
                 self.last_ping_tm = time.time()
                 try:
-                    self.sock.ping(self.ping_payload)
+                    self.sock.ping("")
                     self.sock.send(self.ping_payload)
                 except Exception as ex:
                     logging.debug("Failed to send ping: %s", ex)
