@@ -1,11 +1,17 @@
 import websocket
-import _thread
-import time
 import rel
 import json
 import hmac
 import os   
-from time import gmtime, strftime
+import logging
+import time
+
+logging.basicConfig(filename='monitor.log',
+    filemode='a',
+    format='[%(asctime)s.%(msecs)d][%(name)s][%(levelname)s]: %(message)s',
+    datefmt='%H:%M:%S',
+    level=logging.DEBUG
+)
 
 api_key =  os.environ['BYBIT_MONITOR_API_KEY']
 api_secret = os.environ['BYBIT_MONITOR_API_SECRET']
@@ -16,44 +22,56 @@ signature = str(hmac.new(
     bytes(f"GET/realtime{expires}", "utf-8"), digestmod="sha256"
 ).hexdigest())
 
-def current_utc_time() -> str:
-    return strftime("[UTC %Y-%m-%d %H:%M:%S]", gmtime())
-
-def log(msg: str) -> None:
-    print(current_utc_time(), msg)
-
 def on_message(ws, message):
-    log(message)
+    if 'topic' in message:
+        # trade message
+        logging.info(message)
+    else:
+        logging.debug(message)
 
 def on_error(ws, error):
-    log(error)
+    logging.error(error)
 
 def on_close(ws, close_status_code, close_msg):
-    log("### closed ###")
+    logging.debug("### Websocket closed ###")
+    logging.debug("status code: {}, close msg: {}".format(close_status_code, close_msg))
 
 def on_open(ws):
-    log("Opened connection")
     ws.send(
         json.dumps({
             "op": "auth",
             "args": [api_key, expires, signature]
         })        
-        )
+    )
     ws.send(
-    json.dumps({
-        "op": "subscribe",
-        "args": ["order"]
-    }))
+        json.dumps({
+            "op": "subscribe",
+            "args": ["order"]
+        })
+    )
     
+class CustomWebSocketApp(websocket.WebSocketApp):
+    def _send_ping(self):
+        if self.stop_ping.wait(self.ping_interval):
+            return
+        while not self.stop_ping.wait(self.ping_interval):
+            if self.sock:
+                self.last_ping_tm = time.time()
+                try:
+                    self.sock.ping("")
+                    self.sock.send(self.ping_payload)
+                except Exception as ex:
+                    logging.debug("Failed to send ping: %s", ex)
 
 if __name__ == "__main__":
-#    websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://stream.bybit.com/v5/private",
+    ping_body = json.dumps({
+        "op": "ping"
+    })
+    ws = CustomWebSocketApp("wss://stream.bybit.com/v5/private",
                               on_open=on_open,
                               on_message=on_message,
                               on_error=on_error,
                               on_close=on_close)
-    
-    ws.run_forever(dispatcher=rel, reconnect=5) # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
+    ws.run_forever(ping_interval=60, ping_payload=ping_body, dispatcher=rel, reconnect=5) # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
     rel.signal(2, rel.abort)  # Keyboard Interrupt
     rel.dispatch()
