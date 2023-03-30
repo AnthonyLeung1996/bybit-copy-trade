@@ -6,8 +6,7 @@ import os
 import logging
 import time
 
-logging.basicConfig(filename='monitor.log',
-    filemode='a',
+logging.basicConfig(
     format='[%(asctime)s.%(msecs)d][%(name)s][%(levelname)s]: %(message)s',
     datefmt='%H:%M:%S',
     level=logging.DEBUG
