@@ -22,15 +22,15 @@ pip3 install -r requirements.txt
 
 
 ## Run application
-
+Simply run in terminal:
 ```
 python3 bybitMontior.py
-```
-
-or 
-
-```
 python3 bybitMontior.py >> trades.log
+```
+
+Run using docker-compose:
+```
+docker compose up --detach
 ```
 
 ## Environment variables vequired
