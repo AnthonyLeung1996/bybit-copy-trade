@@ -69,6 +69,6 @@ if __name__ == "__main__":
                               on_message=on_message,
                               on_error=on_error,
                               on_close=on_close)
-    ws.run_forever(ping_interval=60, ping_payload=ping_body, dispatcher=rel, reconnect=5) # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
+    ws.run_forever(ping_interval=60*5, ping_payload=ping_body, dispatcher=rel, reconnect=5) # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
     rel.signal(2, rel.abort)  # Keyboard Interrupt
     rel.dispatch()
