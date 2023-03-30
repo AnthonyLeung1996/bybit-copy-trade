@@ -30,7 +30,7 @@ python3 bybitMontior.py >> trades.log
 
 Run using docker-compose:
 ```
-docker compose up --detach
+docker-compose up --build --detach
 ```
 
 ## Environment variables vequired
