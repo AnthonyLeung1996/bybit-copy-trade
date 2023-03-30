@@ -7,7 +7,7 @@ Python 3.11.2
 pip 22.3.1
 ```
 
-## Install dependencies
+## Install dependencies (for running in terminal)
 
 Run following command:
 ```
@@ -20,6 +20,9 @@ pip3 uninstall -r requirements.txt -y
 pip3 install -r requirements.txt
 ```
 
+## Install dependencies (for running in Docker)
+
+We use docker and docker-compose, so install it yourself.
 
 ## Run application
 Simply run in terminal:
@@ -31,6 +34,7 @@ python3 bybitMontior.py >> trades.log
 Run using docker-compose:
 ```
 docker-compose up --build --detach
+docker-compose logs -f -t
 ```
 
 ## Environment variables vequired
