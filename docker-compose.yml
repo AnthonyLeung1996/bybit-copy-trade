@@ -5,4 +5,3 @@ services:
     environment:
       - BYBIT_MONITOR_API_KEY
       - BYBIT_MONITOR_API_SECRET
-    command: python3 bybitMontior.py
