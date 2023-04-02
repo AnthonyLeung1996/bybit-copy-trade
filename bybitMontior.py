@@ -2,7 +2,7 @@ import websocket
 import rel
 import json
 import hmac
-import os   
+import os
 import logging
 import time
 
@@ -11,12 +11,12 @@ logging.basicConfig(
     level=logging.DEBUG
 )
 
-api_key =  os.environ['BYBIT_MONITOR_API_KEY']
-api_secret = os.environ['BYBIT_MONITOR_API_SECRET']
+monitor_api_key =  os.environ['BYBIT_MONITOR_API_KEY']
+monitor_api_secret = os.environ['BYBIT_MONITOR_API_SECRET']
 expires = 1681662381000
 
 signature = str(hmac.new(
-    bytes(api_secret, "utf-8"),
+    bytes(monitor_api_secret, "utf-8"),
     bytes(f"GET/realtime{expires}", "utf-8"), digestmod="sha256"
 ).hexdigest())
 
@@ -24,8 +24,6 @@ def on_message(ws, message):
     if 'topic' in message:
         # trade message
         logging.info(message)
-    else:
-        logging.debug(message)
 
 def on_error(ws, error):
     logging.error(error)
@@ -38,7 +36,7 @@ def on_open(ws):
     ws.send(
         json.dumps({
             "op": "auth",
-            "args": [api_key, expires, signature]
+            "args": [monitor_api_key, expires, signature]
         })        
     )
     ws.send(
@@ -69,6 +67,6 @@ if __name__ == "__main__":
                               on_message=on_message,
                               on_error=on_error,
                               on_close=on_close)
-    ws.run_forever(ping_interval=60*5, ping_payload=ping_body, dispatcher=rel, reconnect=5) # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
+    ws.run_forever(ping_interval=60, ping_payload=ping_body, dispatcher=rel, reconnect=5) # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
     rel.signal(2, rel.abort)  # Keyboard Interrupt
     rel.dispatch()
