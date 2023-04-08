@@ -6,17 +6,16 @@ import os
 import logging
 import time
 
+import env
+
 logging.basicConfig(
     format='[%(name)s][%(levelname)s]: %(message)s',
     level=logging.DEBUG
 )
-
-monitor_api_key =  os.environ['BYBIT_MONITOR_API_KEY']
-monitor_api_secret = os.environ['BYBIT_MONITOR_API_SECRET']
 expires = 1681662381000
 
 signature = str(hmac.new(
-    bytes(monitor_api_secret, "utf-8"),
+    bytes(env.SOURCE_ACCOUNT_API_SECRET, "utf-8"),
     bytes(f"GET/realtime{expires}", "utf-8"), digestmod="sha256"
 ).hexdigest())
 
@@ -36,7 +35,7 @@ def on_open(ws):
     ws.send(
         json.dumps({
             "op": "auth",
-            "args": [monitor_api_key, expires, signature]
+            "args": [env.SOURCE_ACCOUNT_API_KEY, expires, signature]
         })        
     )
     ws.send(
