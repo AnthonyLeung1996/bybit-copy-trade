@@ -50,7 +50,8 @@ BYBIT_SOURCE_ACCOUNT_API_HOST
 BYBIT_COPY_ACCOUNT_API_HOST
 ```
 
-where source account means the account which you want to read the trading activities from, and copy account is the account will mimic the trades of source account.
+- Source account means the account which you want to read the trading activities from, and copy account is the account will mimic the trades of source account.
+- API host should be either <https://api-testnet.bybit.com> (Testnet) or <https://api.bybit.com> (Mainnet).
 
 Step to create API key:
 
