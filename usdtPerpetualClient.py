@@ -87,7 +87,7 @@ def syncCopyAccountToSourceAccount():
     copyOrders = getCopyAccountActiveOrders()
 
     logging.info('')
-    logging.info('============ Sync Complete ============')
+    logging.info('============= Sync Start ============')
     logging.info('Source positions:')
     logging.info(json.dumps(sourceOrders))
     logging.info('Copy positions:')
@@ -100,12 +100,15 @@ def syncCopyAccountToSourceAccount():
     
     btcOrderQty = Decimal('0')
     ethOrderQty = Decimal('0')
+    leverageRatio = Decimal(env.LEVERAGE_RATIO)
     for order in sourceOrders['result']['list']:
         size = Decimal(order['size'])
         if order['symbol'] == 'BTCUSDT':
             btcOrderQty = size if order['side'] == 'Buy' else -size
+            btcOrderQty *= leverageRatio
         elif order['symbol'] == 'ETHUSDT':
             ethOrderQty = size if order['side'] == 'Buy' else -size
+            ethOrderQty *= leverageRatio
     
     for order in copyOrders['result']['list']:
         size = Decimal(order['size'])
