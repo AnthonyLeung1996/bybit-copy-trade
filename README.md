@@ -34,7 +34,7 @@ python3 bybitCopyTrade.py >> trades.log
 Run using docker-compose:
 ```
 docker-compose up --build --detach
-docker-compose logs -f -t
+docker-compose logs -f -t --tail 10
 ```
 
 ## Environment variables vequired
