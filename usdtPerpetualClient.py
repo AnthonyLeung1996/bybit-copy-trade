@@ -5,11 +5,12 @@ import urllib.parse
 import requests
 import json
 from typing import Literal
+from decimal import Decimal
 
 import env
 
 def getTimestampHeaderContent():
-    return str(round(time.time() * 1000))
+    return str(int(time.time() * 1000))
 
 def getAuthHeaders(api_key, api_secret, payload):
     timestamp = getTimestampHeaderContent()
@@ -83,23 +84,54 @@ def makeOrder(quantity: str, symbol: Literal['BTCUSDT', 'ETHUSDT'], side: Litera
 def syncCopyAccountToSourceAccount():
     sourceOrders = getSourceAccountActiveOrders()
     copyOrders = getCopyAccountActiveOrders()
-    print(sourceOrders)
-    print(copyOrders)
+
+    print()
+    print('============= Before Sync =============')
+    print('[Source positions]', json.dumps(sourceOrders))
+    print('[Copy positions]', json.dumps(copyOrders))
+    print('=======================================')
+    print()
 
     if not sourceOrders or sourceOrders['retCode'] != 0:
         raise Exception('Cannot get position of source account')
     if not copyOrders or copyOrders['retCode'] != 0:
         raise Exception('Cannot get position of copy account')
     
-    ethTargetBalance = 0.0
-    btcTargetBalance = 0.0
-    print(len(sourceOrders['result']['list']))
-    print(len(copyOrders['result']['list']))
+    btcOrderQty = Decimal('0')
+    ethOrderQty = Decimal('0')
+    for order in sourceOrders['result']['list']:
+        size = Decimal(order['size'])
+        if order['symbol'] == 'BTCUSDT':
+            btcOrderQty = size if order['side'] == 'Buy' else -size
+        elif order['symbol'] == 'ETHUSDT':
+            ethOrderQty = size if order['side'] == 'Buy' else -size
     
+    for order in copyOrders['result']['list']:
+        size = Decimal(order['size'])
+        if order['symbol'] == 'BTCUSDT':
+            btcOrderQty -= size if order['side'] == 'Buy' else -size
+        elif order['symbol'] == 'ETHUSDT':
+            ethOrderQty -= size if order['side'] == 'Buy' else -size
 
-if __name__ == "__main__":
-    # print(json.dumps(getSourceAccountActiveOrders(), indent=4))
-    # print(json.dumps(getCopyAccountActiveOrders(), indent=4))
-    # print(json.dumps(makeOrder(quantity="1.2", symbol='ETHUSDT', side='Buy'), indent=4))
-    # print(json.dumps(makeOrder(quantity="0.052", symbol='BTCUSDT', side='Buy'), indent=4))
-    syncCopyAccountToSourceAccount()
+    if not btcOrderQty.is_zero():
+        side = 'Buy' if btcOrderQty > 0 else 'Sell'
+        res = makeOrder(quantity=str(abs(btcOrderQty)), symbol='BTCUSDT', side=side)
+        print('*** Syncing BTCUSDT position ({}):'.format(str(btcOrderQty)), json.dumps(res))
+    if not ethOrderQty.is_zero():
+        side = 'Buy' if ethOrderQty > 0 else 'Sell'
+        res = makeOrder(quantity=str(abs(ethOrderQty)), symbol='ETHUSDT', side=side)
+        print('*** Syncing ETHUSDT position ({}):'.format(str(ethOrderQty)), json.dumps(res))
+    
+    if btcOrderQty.is_zero() and ethOrderQty.is_zero():
+        print()
+        print('=======================================')
+        print('|         Already up-to-date          |')
+        print('=======================================')
+        print()
+    else:
+        print()
+        print('============ Sync Complete ============')
+        print('[Source positions]', json.dumps(getSourceAccountActiveOrders()))
+        print('[Copy positions]', json.dumps(getCopyAccountActiveOrders()))
+        print('=======================================')
+        print()
