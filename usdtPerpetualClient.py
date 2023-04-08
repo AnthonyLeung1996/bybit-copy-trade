@@ -6,6 +6,7 @@ import requests
 import json
 from typing import Literal
 from decimal import Decimal
+import logging
 
 import env
 
@@ -85,12 +86,12 @@ def syncCopyAccountToSourceAccount():
     sourceOrders = getSourceAccountActiveOrders()
     copyOrders = getCopyAccountActiveOrders()
 
-    print()
-    print('============= Before Sync =============')
-    print('[Source positions]', json.dumps(sourceOrders))
-    print('[Copy positions]', json.dumps(copyOrders))
-    print('=======================================')
-    print()
+    logging.info('')
+    logging.info('============ Sync Complete ============')
+    logging.info('Source positions:')
+    logging.info(json.dumps(sourceOrders))
+    logging.info('Copy positions:')
+    logging.info(json.dumps(copyOrders))
 
     if not sourceOrders or sourceOrders['retCode'] != 0:
         raise Exception('Cannot get position of source account')
@@ -116,22 +117,19 @@ def syncCopyAccountToSourceAccount():
     if not btcOrderQty.is_zero():
         side = 'Buy' if btcOrderQty > 0 else 'Sell'
         res = makeOrder(quantity=str(abs(btcOrderQty)), symbol='BTCUSDT', side=side)
-        print('*** Syncing BTCUSDT position ({}):'.format(str(btcOrderQty)), json.dumps(res))
+        logging.info('🔄 Syncing BTC position ({}): {}'.format(str(btcOrderQty), json.dumps(res)))
     if not ethOrderQty.is_zero():
         side = 'Buy' if ethOrderQty > 0 else 'Sell'
         res = makeOrder(quantity=str(abs(ethOrderQty)), symbol='ETHUSDT', side=side)
-        print('*** Syncing ETHUSDT position ({}):'.format(str(ethOrderQty)), json.dumps(res))
+        logging.info('🔄 Syncing ETH position ({}): {}'.format(str(ethOrderQty), json.dumps(res)))
     
     if btcOrderQty.is_zero() and ethOrderQty.is_zero():
-        print()
-        print('=======================================')
-        print('|         Already up-to-date          |')
-        print('=======================================')
-        print()
+        logging.info('✅ Positions Already Up-to-date')
     else:
-        print()
-        print('============ Sync Complete ============')
-        print('[Source positions]', json.dumps(getSourceAccountActiveOrders()))
-        print('[Copy positions]', json.dumps(getCopyAccountActiveOrders()))
-        print('=======================================')
-        print()
+        if not btcOrderQty.is_zero():
+            logging.info('🟢 Updated BTC Positions:')
+            logging.info(json.dumps(getSourceAccountActiveOrders()))
+        if not ethOrderQty.is_zero():
+            logging.info('🟢 Updated ETH positions:')
+            logging.info(json.dumps(getCopyAccountActiveOrders()))
+    logging.info('============ Sync Complete ============')

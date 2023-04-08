@@ -7,10 +7,11 @@ import logging
 import time
 
 import env
+import usdtPerpetualClient
 
 logging.basicConfig(
     format='[%(name)s][%(levelname)s]: %(message)s',
-    level=logging.DEBUG
+    level=logging.INFO
 )
 expires = 1681662381000
 
@@ -28,8 +29,8 @@ def on_error(ws, error):
     logging.error(error)
 
 def on_close(ws, close_status_code, close_msg):
-    logging.debug("### Websocket closed ###")
-    logging.debug("status code: {}, close msg: {}".format(close_status_code, close_msg))
+    logging.info("### Websocket closed ###")
+    logging.info("status code: {}, close msg: {}".format(close_status_code, close_msg))
 
 def on_open(ws):
     ws.send(
@@ -44,6 +45,7 @@ def on_open(ws):
             "args": ["order"]
         })
     )
+    usdtPerpetualClient.syncCopyAccountToSourceAccount()
     
 class CustomWebSocketApp(websocket.WebSocketApp):
     def _send_ping(self):
@@ -55,7 +57,7 @@ class CustomWebSocketApp(websocket.WebSocketApp):
                 try:
                     self.sock.send(self.ping_payload)
                 except Exception as ex:
-                    websocket._logging.debug("Failed to send ping: %s", ex)
+                    websocket._logging.error("Failed to send ping: %s", ex)
 
 if __name__ == "__main__":
     ping_body = json.dumps({
