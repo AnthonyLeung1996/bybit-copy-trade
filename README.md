@@ -26,13 +26,13 @@ We use docker and docker-compose, so install it yourself.
 
 ## Run application
 Simply run in terminal:
-```
+```bash
 python3 bybitCopyTrade.py
 python3 bybitCopyTrade.py >> trades.log
 ```
 
 Run using docker-compose:
-```
+```bash
 docker-compose up --build --detach
 docker-compose logs -f -t --tail 10
 ```
@@ -41,13 +41,22 @@ docker-compose logs -f -t --tail 10
 
 This program require API key credentials of your ByBit account:
 
+Use `vim ~/.bash_profile` or `vim ~/.zshrc` to add following:
 ```bash
-BYBIT_SOURCE_ACCOUNT_API_KEY (Read-only)
-BYBIT_SOURCE_ACCOUNT_API_SECRET (Read-only)
-BYBIT_COPY_ACCOUNT_API_KEY (Read-Write)
-BYBIT_COPY_ACCOUNT_API_SECRET (Read-Write)
-BYBIT_SOURCE_ACCOUNT_API_HOST
-BYBIT_COPY_ACCOUNT_API_HOST
+export BYBIT_SOURCE_ACCOUNT_API_KEY=dRSdK97OGxxxxxxxxx
+export BYBIT_SOURCE_ACCOUNT_API_SECRET=fSkdrHyxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+export BYBIT_COPY_ACCOUNT_API_KEY=GUieV4pzasxxxxxxxx
+export BYBIT_COPY_ACCOUNT_API_SECRET=F2enMITxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+export BYBIT_SOURCE_ACCOUNT_API_HOST=https://api.bybit.com
+export BYBIT_COPY_ACCOUNT_API_HOST=https://api-testnet.bybit.com
+export BYBIT_LEVERAGE_RATIO=5
+```
+
+Apply the change to current terminal:
+```bash
+source ~/.bash_profile
+or
+source ~/.zshrc
 ```
 
 - Source account means the account which you want to read the trading activities from, and copy account is the account will mimic the trades of source account.
@@ -63,3 +72,10 @@ Step to create API key:
 6. Select "Read-only" or "Read-Write"
 7. Either select "No IP restriction" or fill in the IP address if you know them.
 8. Check "Derivatives API V3" > "Trade"
+
+## Steps to change leverage
+
+1. Change environment variable `BYBIT_LEVERAGE_RATIO` by `vim ~/.bash_profile`.
+2. Apply the profile to terminal: `source ~/.bash_profile`.
+3. Rebuild and restart the docker-compose: `docker-compose up --build --detach`
+4. Done, the app will update the positions itself.
