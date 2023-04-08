@@ -1,7 +1,11 @@
 version: '3'
 services:
-  bybit-monitor:
+  bybit-copy-trade:
     build: .
     environment:
-      - BYBIT_MONITOR_API_KEY
-      - BYBIT_MONITOR_API_SECRET
+      - BYBIT_SOURCE_ACCOUNT_API_KEY
+      - BYBIT_SOURCE_ACCOUNT_API_SECRET
+      - BYBIT_COPY_ACCOUNT_API_KEY
+      - BYBIT_COPY_ACCOUNT_API_SECRET
+      - BYBIT_SOURCE_ACCOUNT_API_HOST
+      - BYBIT_COPY_ACCOUNT_API_HOST
