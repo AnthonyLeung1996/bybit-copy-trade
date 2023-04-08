@@ -4,6 +4,7 @@ import hashlib
 import urllib.parse
 import requests
 import json
+from typing import Literal
 
 import env
 
@@ -46,21 +47,59 @@ def getActiveOrders(*, apiHost: str, apiKey: str, apiSecret: str):
 
 def getSourceAccountActiveOrders():
     return getActiveOrders(
-        apiHost=env.SOURCE_ACCOUNT_API_HOST,
-        apiKey=env.SOURCE_ACCOUNT_API_KEY,
-        apiSecret=env.SOURCE_ACCOUNT_API_SECRET
+        apiHost = env.SOURCE_ACCOUNT_API_HOST,
+        apiKey = env.SOURCE_ACCOUNT_API_KEY,
+        apiSecret = env.SOURCE_ACCOUNT_API_SECRET
     )
 
 def getCopyAccountActiveOrders():
     return getActiveOrders(
-        apiHost=env.COPY_ACCOUNT_API_HOST,
-        apiKey=env.COPY_ACCOUNT_KEY,
-        apiSecret=env.COPY_ACCOUNT_SECRET
+        apiHost = env.COPY_ACCOUNT_API_HOST,
+        apiKey = env.COPY_ACCOUNT_KEY,
+        apiSecret = env.COPY_ACCOUNT_SECRET
     )
 
+def makeOrder(quantity: str, symbol: Literal['BTCUSDT', 'ETHUSDT'], side: Literal['Buy', 'Sell']):
+    endpoint = '/v5/order/create'
+    url = env.COPY_ACCOUNT_API_HOST + endpoint
+    reqBody = {
+        "category": "linear",
+        "symbol": symbol,
+        "side": side,
+        "orderType": "Market",
+        "qty": quantity,
+        "timeInForce": "GTC"
+    }
+    headers = getAuthHeaders(
+        env.COPY_ACCOUNT_KEY,
+        env.COPY_ACCOUNT_SECRET,
+        json.dumps(reqBody)
+    )
+    headers['Content-Type'] = 'application/json'
+    response = requests.post(url=url, headers=headers, json=reqBody)
+    data = response.json()
+    return data
+
+def syncCopyAccountToSourceAccount():
+    sourceOrders = getSourceAccountActiveOrders()
+    copyOrders = getCopyAccountActiveOrders()
+    print(sourceOrders)
+    print(copyOrders)
+
+    if not sourceOrders or sourceOrders['retCode'] != 0:
+        raise Exception('Cannot get position of source account')
+    if not copyOrders or copyOrders['retCode'] != 0:
+        raise Exception('Cannot get position of copy account')
+    
+    ethTargetBalance = 0.0
+    btcTargetBalance = 0.0
+    print(len(sourceOrders['result']['list']))
+    print(len(copyOrders['result']['list']))
+    
+
 if __name__ == "__main__":
-    print('Source account active orders:')
-    print(json.dumps(getSourceAccountActiveOrders(), indent=4))
-    print()
-    print('Copy account active orders:')
-    print(json.dumps(getCopyAccountActiveOrders(), indent=4))
+    # print(json.dumps(getSourceAccountActiveOrders(), indent=4))
+    # print(json.dumps(getCopyAccountActiveOrders(), indent=4))
+    # print(json.dumps(makeOrder(quantity="1.2", symbol='ETHUSDT', side='Buy'), indent=4))
+    # print(json.dumps(makeOrder(quantity="0.052", symbol='BTCUSDT', side='Buy'), indent=4))
+    syncCopyAccountToSourceAccount()
