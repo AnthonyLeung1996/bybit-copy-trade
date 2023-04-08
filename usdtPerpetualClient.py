@@ -86,23 +86,22 @@ def syncCopyAccountToSourceAccount():
     sourceOrders = getSourceAccountActiveOrders()
     copyOrders = getCopyAccountActiveOrders()
 
-    logging.info('')
-    logging.info('============= Sync Start ============')
-    logging.info('Source positions:')
-    logging.info(json.dumps(sourceOrders))
-    logging.info('Copy positions:')
-    logging.info(json.dumps(copyOrders))
-
     if not sourceOrders or sourceOrders['retCode'] != 0:
         raise Exception('Cannot get position of source account')
     if not copyOrders or copyOrders['retCode'] != 0:
         raise Exception('Cannot get position of copy account')
     
+    logging.info('')
+    logging.info('============= Sync Start ============')
+    
     btcOrderQty = Decimal('0')
     ethOrderQty = Decimal('0')
     leverageRatio = Decimal(env.LEVERAGE_RATIO)
+    logging.info('Leverage: {}'.format(leverageRatio))
+    logging.info('Source positions:')
     for order in sourceOrders['result']['list']:
         size = Decimal(order['size'])
+        logging.info('> {} {}'.format(order['symbol'], size))
         if order['symbol'] == 'BTCUSDT':
             btcOrderQty = size if order['side'] == 'Buy' else -size
             btcOrderQty *= leverageRatio
@@ -110,8 +109,10 @@ def syncCopyAccountToSourceAccount():
             ethOrderQty = size if order['side'] == 'Buy' else -size
             ethOrderQty *= leverageRatio
     
+    logging.info('Copy positions:')
     for order in copyOrders['result']['list']:
         size = Decimal(order['size'])
+        logging.info('> {} {}'.format(order['symbol'], size))
         if order['symbol'] == 'BTCUSDT':
             btcOrderQty -= size if order['side'] == 'Buy' else -size
         elif order['symbol'] == 'ETHUSDT':
@@ -119,20 +120,22 @@ def syncCopyAccountToSourceAccount():
 
     if not btcOrderQty.is_zero():
         side = 'Buy' if btcOrderQty > 0 else 'Sell'
+        logging.info('🔄 Syncing BTC position ({}) ...'.format(btcOrderQty))
         res = makeOrder(quantity=str(abs(btcOrderQty)), symbol='BTCUSDT', side=side)
-        logging.info('🔄 Syncing BTC position ({}): {}'.format(str(btcOrderQty), json.dumps(res)))
+        if res['retCode'] == 0:
+            logging.info('🟢 BTC Positions Updated')
+        else:
+            logging.error('Error: {}'.format(res))
+        
     if not ethOrderQty.is_zero():
         side = 'Buy' if ethOrderQty > 0 else 'Sell'
+        logging.info('🔄 Syncing ETH position ({}) ...'.format(ethOrderQty))
         res = makeOrder(quantity=str(abs(ethOrderQty)), symbol='ETHUSDT', side=side)
-        logging.info('🔄 Syncing ETH position ({}): {}'.format(str(ethOrderQty), json.dumps(res)))
+        if res['retCode'] == 0:
+            logging.info('🟢 ETH Positions Updated')
+        else:
+            logging.error('Error: {}'.format(res))
     
     if btcOrderQty.is_zero() and ethOrderQty.is_zero():
         logging.info('✅ Positions Already Up-to-date')
-    else:
-        if not btcOrderQty.is_zero():
-            logging.info('🟢 Updated BTC Positions:')
-            logging.info(json.dumps(getSourceAccountActiveOrders()))
-        if not ethOrderQty.is_zero():
-            logging.info('🟢 Updated ETH positions:')
-            logging.info(json.dumps(getCopyAccountActiveOrders()))
     logging.info('============ Sync Complete ============')

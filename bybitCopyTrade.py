@@ -2,9 +2,9 @@ import websocket
 import rel
 import json
 import hmac
-import os
 import logging
 import time
+from decimal import Decimal
 
 import env
 import usdtPerpetualClient
@@ -21,9 +21,44 @@ signature = str(hmac.new(
 ).hexdigest())
 
 def on_message(ws, message):
-    if 'topic' in message:
-        # trade message
+    if 'topic' not in message:
+        return
+    
+    if 'data' in message and 'category' in message['data'] and message['data']['category'] == 'linear':
+        data = message['data']
+        logging.info('📩 {} {} {}'.format(
+            data['side'], data['symbol'][:3], data['qty']
+        ))
+
+        leverageRatio = Decimal(env.LEVERAGE_RATIO)
+        originalQty = Decimal(data['qty'])
+        leveragedQty = leverageRatio * originalQty
+        side = data['side']
+        if data['symbol'] == 'BTCUSDT':
+            logging.info('🔄 submitting BTC order: {} {}'.format(side, leveragedQty))
+            res = usdtPerpetualClient.makeOrder(
+                quantity=str(leveragedQty),
+                symbol='BTCUSDT',
+                side=side
+            )
+            if res['retCode'] == 0:
+                logging.info('🟢 BTC Positions Updated')
+            else:
+                logging.error('Error: {}'.format(res))
+        elif data['symbol'] == 'ETHUSDT':
+            logging.info('🔄 submitting ETH order: {} {}'.format(side, leveragedQty))
+            res = usdtPerpetualClient.makeOrder(
+                quantity=str(leveragedQty),
+                symbol='ETHUSDT',
+                side=side
+            )
+            if res['retCode'] == 0:
+                logging.info('🟢 ETH Positions Updated')
+            else:
+                logging.error('Error: {}'.format(res))
+    else:
         logging.info(message)
+
 
 def on_error(ws, error):
     logging.error(error)
