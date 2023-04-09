@@ -122,7 +122,7 @@ def syncCopyAccountToSourceAccount():
         side = 'Buy' if btcOrderQty > 0 else 'Sell'
         logging.info('🔄 Syncing BTC position ({}) ...'.format(btcOrderQty))
         res = makeOrder(quantity=str(abs(btcOrderQty)), symbol='BTCUSDT', side=side)
-        if res['retCode'] == 0:
+        if 'retCode' in res and res['retCode'] == 0:
             logging.info('🟢 BTC Positions Updated')
         else:
             logging.error('Error: {}'.format(res))
@@ -131,7 +131,7 @@ def syncCopyAccountToSourceAccount():
         side = 'Buy' if ethOrderQty > 0 else 'Sell'
         logging.info('🔄 Syncing ETH position ({}) ...'.format(ethOrderQty))
         res = makeOrder(quantity=str(abs(ethOrderQty)), symbol='ETHUSDT', side=side)
-        if res['retCode'] == 0:
+        if 'retCode' in res and  res['retCode'] == 0:
             logging.info('🟢 ETH Positions Updated')
         else:
             logging.error('Error: {}'.format(res))
