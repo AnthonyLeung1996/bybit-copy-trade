@@ -21,11 +21,16 @@ signature = str(hmac.new(
 ).hexdigest())
 
 def on_message(ws, message):
-    if 'topic' not in message:
+    try:
+        messageDict = json.loads(message)
+    except Exception as e:
+        logging.error('Error when parsing message')
+        raise e
+    if 'topic' not in messageDict:
         return
     
-    if 'data' in message and 'category' in message['data'] and message['data']['category'] == 'linear':
-        data = message['data']
+    if 'data' in messageDict and 'category' in messageDict['data'] and messageDict['data']['category'] == 'linear':
+        data = messageDict['data']
         logging.info('📩 {} {} {}'.format(
             data['side'], data['symbol'][:3], data['qty']
         ))
@@ -41,7 +46,7 @@ def on_message(ws, message):
                 symbol='BTCUSDT',
                 side=side
             )
-            if res['retCode'] == 0:
+            if 'retCode' in res and res['retCode'] == 0:
                 logging.info('🟢 BTC Positions Updated')
             else:
                 logging.error('Error: {}'.format(res))
@@ -52,7 +57,7 @@ def on_message(ws, message):
                 symbol='ETHUSDT',
                 side=side
             )
-            if res['retCode'] == 0:
+            if 'retCode' in res and res['retCode'] == 0:
                 logging.info('🟢 ETH Positions Updated')
             else:
                 logging.error('Error: {}'.format(res))
