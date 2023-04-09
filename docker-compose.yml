@@ -3,6 +3,7 @@ services:
   bybit-copy-trade:
     build: .
     restart: on-failure:5
+    TZ: Asia/Tokyo
     environment:
       - BYBIT_SOURCE_ACCOUNT_API_KEY
       - BYBIT_SOURCE_ACCOUNT_API_SECRET
