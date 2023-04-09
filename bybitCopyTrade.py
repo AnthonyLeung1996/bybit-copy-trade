@@ -11,7 +11,7 @@ import usdtPerpetualClient
 
 logging.basicConfig(
     format='[%(name)s][%(levelname)s]: %(message)s',
-    level=logging.DEBUG
+    level=logging.INFO
 )
 expires = 1681662381000
 
