@@ -5,13 +5,23 @@ import hmac
 import logging
 import time
 from decimal import Decimal
+from datetime import datetime
+from pytz import timezone
 
 import env
 import usdtPerpetualClient
 
+def timetz(*args):
+    return datetime.now(tz).timetuple()
+
+tz = timezone('Asia/Tokyo')
+
+logging.Formatter.converter = timetz
+
 logging.basicConfig(
-    format='[%(name)s][%(levelname)s]: %(message)s',
-    level=logging.INFO
+    format='[%(asctime)s][%(name)s][%(levelname)s]: %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S'
 )
 expires = 1681662381000
 
