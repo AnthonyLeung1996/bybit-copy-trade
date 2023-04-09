@@ -2,6 +2,7 @@ version: '3'
 services:
   bybit-copy-trade:
     build: .
+    restart: on-failure:5
     environment:
       - BYBIT_SOURCE_ACCOUNT_API_KEY
       - BYBIT_SOURCE_ACCOUNT_API_SECRET
