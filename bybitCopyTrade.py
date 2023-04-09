@@ -43,11 +43,12 @@ def on_message(ws, message):
     
     if 'data' in messageDict:
         for data in messageDict['data']:
-            if not ('category' in data and data['category'] == 'linear'):
+            isOrderRelevantAndFilled = 'category' in data and data['category'] == 'linear' and data['orderStatus'] == 'Filled'
+            if not (isOrderRelevantAndFilled):
                 continue
 
-            logging.info('📩 {} {} {}'.format(
-                data['side'], data['symbol'][:3], data['qty']
+            logging.info('📩 {} {} {} (orderId: {})'.format(
+                data['side'], data['symbol'][:3], data['qty'], data['orderId']
             ))
 
             leverageRatio = Decimal(env.LEVERAGE_RATIO)
