@@ -4,7 +4,6 @@ services:
     build: .
     restart: on-failure:5
     environment:
-      - TZ=Asia/Tokyo
       - BYBIT_SOURCE_ACCOUNT_API_KEY
       - BYBIT_SOURCE_ACCOUNT_API_SECRET
       - BYBIT_COPY_ACCOUNT_API_KEY
