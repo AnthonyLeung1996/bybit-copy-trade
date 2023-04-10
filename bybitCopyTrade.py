@@ -41,6 +41,8 @@ def on_message(ws, message):
     if 'topic' not in messageDict:
         return
     
+    logging.info(message)
+    
     if 'data' in messageDict:
         for data in messageDict['data']:
             isOrderRelevantAndFilled = 'category' in data and data['category'] == 'linear' and data['orderStatus'] == 'Filled'
@@ -77,8 +79,6 @@ def on_message(ws, message):
                     logging.info('🟢 ETH Positions Updated')
                 else:
                     logging.error('Error: {}'.format(res))
-    else:
-        logging.info(message)
 
 
 def on_error(ws, error):
