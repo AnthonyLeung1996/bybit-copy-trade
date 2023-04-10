@@ -38,47 +38,46 @@ def on_message(ws, message):
         logging.error('Error when parsing message')
         raise e
     
-    if 'topic' not in messageDict:
+    if 'topic' not in messageDict or 'data' not in messageDict:
         return
     
     logging.info(message)
     
-    if 'data' in messageDict:
-        for data in messageDict['data']:
-            isOrderRelevantAndFilled = 'category' in data and data['category'] == 'linear' and data['orderStatus'] == 'Filled'
-            if not (isOrderRelevantAndFilled):
-                continue
+    for data in messageDict['data']:
+        isOrderRelevantAndFilled = 'category' in data and data['category'] == 'linear' and data['orderStatus'] == 'Filled'
+        if not (isOrderRelevantAndFilled):
+            continue
 
-            logging.info('📩 {} {} {} (orderId: {})'.format(
-                data['side'], data['symbol'][:3], data['qty'], data['orderId']
-            ))
+        logging.info('📩 {} {} {} (orderId: {})'.format(
+            data['side'], data['symbol'][:3], data['qty'], data['orderId']
+        ))
 
-            leverageRatio = Decimal(env.LEVERAGE_RATIO)
-            originalQty = Decimal(data['qty'])
-            leveragedQty = leverageRatio * originalQty
-            side = data['side']
-            if data['symbol'] == 'BTCUSDT':
-                logging.info('🔄 submitting BTC order: {} {}'.format(side, leveragedQty))
-                res = usdtPerpetualClient.makeOrder(
-                    quantity=str(leveragedQty),
-                    symbol='BTCUSDT',
-                    side=side
-                )
-                if 'retCode' in res and res['retCode'] == 0:
-                    logging.info('🟢 BTC Positions Updated')
-                else:
-                    logging.error('Error: {}'.format(res))
-            elif data['symbol'] == 'ETHUSDT':
-                logging.info('🔄 submitting ETH order: {} {}'.format(side, leveragedQty))
-                res = usdtPerpetualClient.makeOrder(
-                    quantity=str(leveragedQty),
-                    symbol='ETHUSDT',
-                    side=side
-                )
-                if 'retCode' in res and res['retCode'] == 0:
-                    logging.info('🟢 ETH Positions Updated')
-                else:
-                    logging.error('Error: {}'.format(res))
+        leverageRatio = Decimal(env.LEVERAGE_RATIO)
+        originalQty = Decimal(data['qty'])
+        leveragedQty = leverageRatio * originalQty
+        side = data['side']
+        if data['symbol'] == 'BTCUSDT':
+            logging.info('🔄 submitting BTC order: {} {}'.format(side, leveragedQty))
+            res = usdtPerpetualClient.makeOrder(
+                quantity=str(leveragedQty),
+                symbol='BTCUSDT',
+                side=side
+            )
+            if 'retCode' in res and res['retCode'] == 0:
+                logging.info('🟢 BTC Positions Updated')
+            else:
+                logging.error('Error: {}'.format(res))
+        elif data['symbol'] == 'ETHUSDT':
+            logging.info('🔄 submitting ETH order: {} {}'.format(side, leveragedQty))
+            res = usdtPerpetualClient.makeOrder(
+                quantity=str(leveragedQty),
+                symbol='ETHUSDT',
+                side=side
+            )
+            if 'retCode' in res and res['retCode'] == 0:
+                logging.info('🟢 ETH Positions Updated')
+            else:
+                logging.error('Error: {}'.format(res))
 
 
 def on_error(ws, error):
