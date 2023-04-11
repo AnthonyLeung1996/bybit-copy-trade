@@ -8,13 +8,6 @@ import env
 import usdtPerpetualClient
 from logger import logger
 
-expires = 1681662381000
-
-signature = str(hmac.new(
-    bytes(env.SOURCE_ACCOUNT_API_SECRET, "utf-8"),
-    bytes(f"GET/realtime{expires}", "utf-8"), digestmod="sha256"
-).hexdigest())
-
 def on_message(ws, message):
     messageDict = {}
     try:
@@ -48,6 +41,12 @@ def on_close(ws, close_status_code, close_msg):
     logger.info("status code: {}, close msg: {}".format(close_status_code, close_msg))
 
 def on_open(ws):
+    expires = int(time.time() * 1000) + 2000
+    signature = str(hmac.new(
+        bytes(env.SOURCE_ACCOUNT_API_SECRET, "utf-8"),
+        bytes(f"GET/realtime{expires}", "utf-8"), digestmod="sha256"
+    ).hexdigest())
+
     ws.send(
         json.dumps({
             "op": "auth",
@@ -60,6 +59,7 @@ def on_open(ws):
             "args": ["order"]
         })
     )
+
     usdtPerpetualClient.syncCopyAccountToSourceAccount()
     
 class CustomWebSocketApp(websocket.WebSocketApp):
