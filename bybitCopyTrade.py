@@ -26,6 +26,8 @@ def on_message(ws, message):
     if 'topic' not in messageDict or 'data' not in messageDict:
         return
     
+    logger.info(message)
+    
     for data in messageDict['data']:
         isOrderRelevantAndFilled = 'category' in data and data['category'] == 'linear' and data['orderStatus'] == 'Filled'
         if not (isOrderRelevantAndFilled):
