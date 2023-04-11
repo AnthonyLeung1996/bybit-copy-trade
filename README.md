@@ -34,6 +34,12 @@ python3 bybitCopyTrade.py >> trades.log
 Run using docker-compose:
 ```bash
 docker-compose up --build --detach
+or
+docker-compose up --force-recreate
+```
+
+Following the log:
+```bash
 docker-compose logs -f --tail 10
 ```
 
@@ -43,6 +49,7 @@ This program require API key credentials of your ByBit account:
 
 Use `vim ~/.bash_profile` or `vim ~/.zshrc` to add following:
 ```bash
+export BYBIT_WEBSOCKET_CHANNEL=wss://stream.bybit.com/v5/private
 export BYBIT_SOURCE_ACCOUNT_API_KEY=dRSdK97OGxxxxxxxxx
 export BYBIT_SOURCE_ACCOUNT_API_SECRET=fSkdrHyxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 export BYBIT_COPY_ACCOUNT_API_KEY=GUieV4pzasxxxxxxxx
