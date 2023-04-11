@@ -33,9 +33,7 @@ python3 bybitCopyTrade.py >> trades.log
 
 Run using docker-compose:
 ```bash
-docker-compose up --build --detach
-or
-docker-compose up --force-recreate --detach
+docker-compose up --no-deps --build --detach
 ```
 
 Following the log:
