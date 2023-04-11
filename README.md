@@ -35,7 +35,7 @@ Run using docker-compose:
 ```bash
 docker-compose up --build --detach
 or
-docker-compose up --force-recreate
+docker-compose up --force-recreate --detach
 ```
 
 Following the log:
