@@ -6,8 +6,8 @@ import requests
 import json
 from typing import Literal
 from decimal import Decimal
-import logging
 
+from logger import logger
 import env
 
 def getTimestampHeaderContent():
@@ -91,51 +91,72 @@ def syncCopyAccountToSourceAccount():
     if not copyOrders or copyOrders['retCode'] != 0:
         raise Exception('Cannot get position of copy account')
     
-    logging.info('')
-    logging.info('============= Sync Start ============')
+    logger.info('')
+    logger.info('============= Sync Start ============')
     
-    btcOrderQty = Decimal('0')
-    ethOrderQty = Decimal('0')
+    btcSourcePosition = Decimal('0')
+    ethSourcePosition = Decimal('0')
+    btcCopyPosition = Decimal('0')
+    ethCopyPosition = Decimal('0')
     leverageRatio = Decimal(env.LEVERAGE_RATIO)
-    logging.info('Leverage: {}'.format(leverageRatio))
-    logging.info('Source positions:')
+
+    logger.info('Leverage: {}'.format(leverageRatio))
+    
     for order in sourceOrders['result']['list']:
         size = Decimal(order['size'])
-        logging.info('> {} {}'.format(order['symbol'], size))
         if order['symbol'] == 'BTCUSDT':
-            btcOrderQty = size if order['side'] == 'Buy' else -size
-            btcOrderQty *= leverageRatio
+            btcSourcePosition = size if order['side'] == 'Buy' else -size
         elif order['symbol'] == 'ETHUSDT':
-            ethOrderQty = size if order['side'] == 'Buy' else -size
-            ethOrderQty *= leverageRatio
+            ethSourcePosition = size if order['side'] == 'Buy' else -size
+    logger.info('Current Source positions:')
+    logger.info('> BTC: {}'.format(btcSourcePosition))
+    logger.info('> ETH: {}'.format(ethSourcePosition))
     
-    logging.info('Copy positions:')
     for order in copyOrders['result']['list']:
         size = Decimal(order['size'])
-        logging.info('> {} {}'.format(order['symbol'], size))
         if order['symbol'] == 'BTCUSDT':
-            btcOrderQty -= size if order['side'] == 'Buy' else -size
+            btcCopyPosition = size if order['side'] == 'Buy' else -size
         elif order['symbol'] == 'ETHUSDT':
-            ethOrderQty -= size if order['side'] == 'Buy' else -size
+            ethCopyPosition = size if order['side'] == 'Buy' else -size
+
+    logger.info('Current Copy positions:')
+    logger.info('> BTC: {}'.format(btcCopyPosition))
+    logger.info('> ETH: {}'.format(ethCopyPosition))
+
+    btcWantedPosition = btcSourcePosition * leverageRatio
+    ethWantedPosition = ethSourcePosition * leverageRatio
+    logger.info('Wanted Copy positions:')
+    logger.info('> BTC: {}'.format(btcWantedPosition))
+    logger.info('> ETH: {}'.format(ethWantedPosition))
+
+    btcOrderQty = btcWantedPosition - btcCopyPosition
+    ethOrderQty = ethWantedPosition - ethCopyPosition
 
     if not btcOrderQty.is_zero():
-        side = 'Buy' if btcOrderQty > 0 else 'Sell'
-        logging.info('🔄 Syncing BTC position ({}) ...'.format(btcOrderQty))
-        res = makeOrder(quantity=str(abs(btcOrderQty)), symbol='BTCUSDT', side=side)
-        if 'retCode' in res and res['retCode'] == 0:
-            logging.info('🟢 BTC Positions Updated')
-        else:
-            logging.error('Error: {}'.format(res))
-        
+        side = 'Buy' if btcOrderQty > 0.0 else 'Sell'
+        logger.info('⌛ Submitting BTC order ({}) ...'.format(btcOrderQty))
+        try:
+            res = makeOrder(quantity=str(abs(btcOrderQty)), symbol='BTCUSDT', side=side)
+            if 'retCode' in res and res['retCode'] == 0:
+                logger.info('🟢 BTC order submitted')
+            else:
+                logger.error('🔴 BTC order rejected: {}'.format(res))
+        except Exception as e:
+            logger.error('🔴 Error when submitting BTC order: {}'.format(e))
+    
     if not ethOrderQty.is_zero():
-        side = 'Buy' if ethOrderQty > 0 else 'Sell'
-        logging.info('🔄 Syncing ETH position ({}) ...'.format(ethOrderQty))
-        res = makeOrder(quantity=str(abs(ethOrderQty)), symbol='ETHUSDT', side=side)
-        if 'retCode' in res and  res['retCode'] == 0:
-            logging.info('🟢 ETH Positions Updated')
-        else:
-            logging.error('Error: {}'.format(res))
+        side = 'Buy' if ethOrderQty > 0.0 else 'Sell'
+        logger.info('⌛ Submitting ETH order ({}) ...'.format(ethOrderQty))
+        try:
+            res = makeOrder(quantity=str(abs(ethOrderQty)), symbol='ETHUSDT', side=side)
+            if 'retCode' in res and  res['retCode'] == 0:
+                logger.info('🟢 ETH order submitted')
+            else:
+                logger.error('🔴 ETH order rejected: {}'.format(res))
+        except Exception as e:
+            logger.error('🔴 Error when submitting ETH order: {}'.format(e))
     
     if btcOrderQty.is_zero() and ethOrderQty.is_zero():
-        logging.info('✅ Positions Already Up-to-date')
-    logging.info('============ Sync Complete ============')
+        logger.info('✅ Positions Already Up-to-date')
+
+    logger.info('============ Sync Complete ============')

@@ -2,27 +2,12 @@ import websocket
 import rel
 import json
 import hmac
-import logging
 import time
-from decimal import Decimal
-from datetime import datetime
-from pytz import timezone
 
 import env
 import usdtPerpetualClient
+from logger import logger
 
-def timetz(*args):
-    return datetime.now(tz).timetuple()
-
-tz = timezone('Asia/Tokyo')
-
-logging.Formatter.converter = timetz
-
-logging.basicConfig(
-    format='[%(asctime)s][%(name)s][%(levelname)s]: %(message)s',
-    level=logging.INFO,
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
 expires = 1681662381000
 
 signature = str(hmac.new(
@@ -35,7 +20,7 @@ def on_message(ws, message):
     try:
         messageDict = json.loads(message)
     except Exception as e:
-        logging.error('Error when parsing message')
+        logger.error('Error when parsing message')
         raise e
     
     if 'topic' not in messageDict or 'data' not in messageDict:
@@ -46,7 +31,7 @@ def on_message(ws, message):
         if not (isOrderRelevantAndFilled):
             continue
 
-        logging.info('📩 {} {} {} (orderId: {})'.format(
+        logger.info('📩 {} {} {} (orderId: {})'.format(
             data['side'], data['symbol'][:3], data['qty'], data['orderId']
         ))
     
@@ -54,11 +39,11 @@ def on_message(ws, message):
 
 
 def on_error(ws, error):
-    logging.error(error)
+    logger.error(error)
 
 def on_close(ws, close_status_code, close_msg):
-    logging.info("### Websocket closed ###")
-    logging.info("status code: {}, close msg: {}".format(close_status_code, close_msg))
+    logger.info("### Websocket closed ###")
+    logger.info("status code: {}, close msg: {}".format(close_status_code, close_msg))
 
 def on_open(ws):
     ws.send(
@@ -86,7 +71,7 @@ class CustomWebSocketApp(websocket.WebSocketApp):
                     self.sock.ping('')
                     self.sock.send(self.ping_payload)
                 except Exception as ex:
-                    websocket._logging.error("Failed to send ping: %s", ex)
+                    websocket._logger.error("Failed to send ping: %s", ex)
 
 if __name__ == "__main__":
     ping_body = json.dumps({
