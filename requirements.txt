@@ -1,3 +1,4 @@
-websocket-client~=1.5.1
-rel~=0.4.8
-pybit~=2.4.1
+pytz==2023.3
+rel==0.4.8
+requests==2.28.2
+websocket_client==1.5.1
