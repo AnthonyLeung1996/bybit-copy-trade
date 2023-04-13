@@ -38,7 +38,7 @@ docker-compose up --no-deps --build --detach
 
 Following the log:
 ```bash
-docker-compose logs -f --tail 10
+docker-compose logs -f --tail 30
 ```
 
 ## Environment variables vequired
