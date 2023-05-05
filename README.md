@@ -78,6 +78,10 @@ Step to create API key:
 7. Either select "No IP restriction" or fill in the IP address if you know them.
 8. Check "Derivatives API V3" > "Trade"
 
+## Position Mode
+
+Note that the copy account need to use "One-Way Mode" setting for both ETHUSDT and BTCUSDT.
+
 ## Steps to change leverage
 
 1. Change environment variable `BYBIT_LEVERAGE_RATIO` by `vim ~/.bash_profile`.
