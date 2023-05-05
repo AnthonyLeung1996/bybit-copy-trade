@@ -70,7 +70,8 @@ def makeOrder(quantity: str, symbol: Literal['BTCUSDT', 'ETHUSDT'], side: Litera
         "side": side,
         "orderType": "Market",
         "qty": quantity,
-        "timeInForce": "GTC"
+        "timeInForce": "GTC",
+        "positionIdx": 0
     }
     headers = getAuthHeaders(
         env.COPY_ACCOUNT_KEY,
