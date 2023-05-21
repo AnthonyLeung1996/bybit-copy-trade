@@ -2,7 +2,7 @@ version: '3'
 services:
   bybit-copy-trade:
     build: .
-    restart: on-failure:5
+    restart: always
     environment:
       - TZ=Asia/Tokyo
       - BYBIT_WEBSOCKET_CHANNEL
