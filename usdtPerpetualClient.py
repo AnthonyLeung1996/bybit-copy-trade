@@ -160,4 +160,4 @@ def syncCopyAccountToSourceAccount():
     if btcOrderQty.is_zero() and ethOrderQty.is_zero():
         logger.info('✅ Positions Already Up-to-date')
 
-    logger.info('============ Sync Complete ============')
+    logger.info('=========== Sync Complete ===========')
