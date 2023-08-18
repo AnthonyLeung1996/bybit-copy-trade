@@ -1,0 +1,41 @@
+{
+  "retCode": 0,
+  "retMsg": "OK",
+  "result": {
+    "list": [
+      {
+        "positionIdx": 2,
+        "riskId": 11,
+        "riskLimitValue": "900000",
+        "symbol": "ETHUSDT",
+        "side": "Sell",
+        "size": "0.10",
+        "avgPrice": "1839.13",
+        "positionValue": "183.913",
+        "tradeMode": 0,
+        "positionStatus": "Normal",
+        "autoAddMargin": 0,
+        "adlRankIndicator": 2,
+        "leverage": "20",
+        "positionBalance": "9.30985976",
+        "markPrice": "1839.21",
+        "liqPrice": "5292.08",
+        "bustPrice": "5301.27",
+        "positionMM": "2.650635",
+        "positionIM": "1.83913",
+        "tpslMode": "Full",
+        "takeProfit": "0.00",
+        "stopLoss": "0.00",
+        "trailingStop": "0.00",
+        "unrealisedPnl": "-0.008",
+        "cumRealisedPnl": "-168.94186841",
+        "createdTime": "1682761548368",
+        "updatedTime": "1691968805230"
+      }
+    ],
+    "nextPageCursor": "",
+    "category": "linear"
+  },
+  "retExtInfo": {},
+  "time": 1691968810947
+}

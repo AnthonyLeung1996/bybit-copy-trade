@@ -30,7 +30,7 @@ def on_message(ws, message):
             data['side'], data['symbol'][:3], data['qty'], data['orderId']
         ))
     
-    usdtPerpetualClient.syncCopyAccountToSourceAccount()
+    usdtPerpetualClient.syncCopyAccountToSourceAccountAndSetSL()
 
 
 def on_error(ws, error):
@@ -43,14 +43,14 @@ def on_close(ws, close_status_code, close_msg):
 def on_open(ws):
     expires = int(time.time() * 1000) + 2000
     signature = str(hmac.new(
-        bytes(env.SOURCE_ACCOUNT_API_SECRET, "utf-8"),
+        bytes(env.get_source_account_api_secret(), "utf-8"),
         bytes(f"GET/realtime{expires}", "utf-8"), digestmod="sha256"
     ).hexdigest())
 
     ws.send(
         json.dumps({
             "op": "auth",
-            "args": [env.SOURCE_ACCOUNT_API_KEY, expires, signature]
+            "args": [env.get_source_account_api_key(), expires, signature]
         })        
     )
     ws.send(
@@ -60,7 +60,7 @@ def on_open(ws):
         })
     )
 
-    usdtPerpetualClient.syncCopyAccountToSourceAccount()
+    usdtPerpetualClient.syncCopyAccountToSourceAccountAndSetSL()
     
 class CustomWebSocketApp(websocket.WebSocketApp):
     def _send_ping(self):
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     ping_body = json.dumps({
         "op": "ping"
     })
-    ws = CustomWebSocketApp(env.WEBSOCKET_CHANNEL,
+    ws = CustomWebSocketApp(env.get_websocket_channel(),
                               on_open=on_open,
                               on_message=on_message,
                               on_error=on_error,

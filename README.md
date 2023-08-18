@@ -55,6 +55,7 @@ export BYBIT_COPY_ACCOUNT_API_SECRET=F2enMITxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 export BYBIT_SOURCE_ACCOUNT_API_HOST=https://api.bybit.com
 export BYBIT_COPY_ACCOUNT_API_HOST=https://api-testnet.bybit.com
 export BYBIT_LEVERAGE_RATIO=5
+export BYBIT_STOP_LOSS_RATE=0.07
 ```
 
 Apply the change to current terminal:
@@ -64,7 +65,7 @@ or
 source ~/.zshrc
 ```
 
-- Source account means the account which you want to read the trading activities from, and copy account is the account will mimic the trades of source account.
+- Source account means the account which you want to read the trading activities from (and set take-profile stop-loss if you want), and copy account is the account will mimic the trades of source account.
 - API host should be either <https://api-testnet.bybit.com> (Testnet) or <https://api.bybit.com> (Mainnet).
 
 Step to create API key:
@@ -82,9 +83,9 @@ Step to create API key:
 
 Note that the copy account need to use "One-Way Mode" setting for both ETHUSDT and BTCUSDT.
 
-## Steps to change leverage
+## Steps to change leverage/stop loss
 
-1. Change environment variable `BYBIT_LEVERAGE_RATIO` by `vim ~/.bash_profile`.
+1. Change environment variable `BYBIT_LEVERAGE_RATIO` or `BYBIT_STOP_LOSS_RATE` by `vim ~/.bash_profile`.
 2. Apply the profile to terminal: `source ~/.bash_profile`.
 3. Rebuild and restart the docker-compose: `docker-compose up --build --detach`
 4. Done, the app will update the positions itself.

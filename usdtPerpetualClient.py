@@ -10,6 +10,9 @@ from decimal import Decimal
 from logger import logger
 import env
 
+ETH_SYMBOL = 'ETHUSDT'
+BTC_SYMBOL = 'BTCUSDT'
+
 def getTimestampHeaderContent():
     return str(int(time.time() * 1000))
 
@@ -30,7 +33,7 @@ def getAuthHeaders(api_key, api_secret, payload):
         'X-BAPI-RECV-WINDOW': recv_window,
     }
 
-def getActiveOrders(*, apiHost: str, apiKey: str, apiSecret: str):
+def getActivePositions(*, apiHost: str, apiKey: str, apiSecret: str):
     endpoint = '/v5/position/list'
     url = apiHost + endpoint
     params = {
@@ -47,23 +50,23 @@ def getActiveOrders(*, apiHost: str, apiKey: str, apiSecret: str):
     data = response.json()
     return data
 
-def getSourceAccountActiveOrders():
-    return getActiveOrders(
-        apiHost = env.SOURCE_ACCOUNT_API_HOST,
-        apiKey = env.SOURCE_ACCOUNT_API_KEY,
-        apiSecret = env.SOURCE_ACCOUNT_API_SECRET
+def getSourceAccountPositions():
+    return getActivePositions(
+        apiHost = env.get_source_account_api_host(),
+        apiKey = env.get_source_account_api_key(),
+        apiSecret = env.get_source_account_api_secret()
     )
 
-def getCopyAccountActiveOrders():
-    return getActiveOrders(
-        apiHost = env.COPY_ACCOUNT_API_HOST,
-        apiKey = env.COPY_ACCOUNT_KEY,
-        apiSecret = env.COPY_ACCOUNT_SECRET
+def getCopyAccountPositions():
+    return getActivePositions(
+        apiHost = env.get_copy_account_api_host(),
+        apiKey = env.get_copy_account_api_key(),
+        apiSecret = env.get_copy_account_api_secret()
     )
 
 def makeOrder(quantity: str, symbol: Literal['BTCUSDT', 'ETHUSDT'], side: Literal['Buy', 'Sell']):
     endpoint = '/v5/order/create'
-    url = env.COPY_ACCOUNT_API_HOST + endpoint
+    url = env.get_copy_account_api_host() + endpoint
     reqBody = {
         "category": "linear",
         "symbol": symbol,
@@ -74,8 +77,8 @@ def makeOrder(quantity: str, symbol: Literal['BTCUSDT', 'ETHUSDT'], side: Litera
         "positionIdx": 0
     }
     headers = getAuthHeaders(
-        env.COPY_ACCOUNT_KEY,
-        env.COPY_ACCOUNT_SECRET,
+        env.get_copy_account_api_key(),
+        env.get_copy_account_api_secret(),
         json.dumps(reqBody)
     )
     headers['Content-Type'] = 'application/json'
@@ -83,13 +86,63 @@ def makeOrder(quantity: str, symbol: Literal['BTCUSDT', 'ETHUSDT'], side: Litera
     data = response.json()
     return data
 
-def syncCopyAccountToSourceAccount():
-    sourceOrders = getSourceAccountActiveOrders()
-    copyOrders = getCopyAccountActiveOrders()
+def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
+    positionIdx = position['positionIdx']
+    avgPrice = position['avgPrice']
+    positionValue = position['positionValue']
+    endpoint = '/v5/position/trading-stop'
+    url = env.get_source_account_api_host() + endpoint
 
-    if not sourceOrders or sourceOrders['retCode'] != 0:
+    leverageRatio = Decimal(env.get_leverage_ratio())
+    if leverageRatio.is_zero():
+        return
+
+    isReverse = leverageRatio < 0
+    stopLossRate = Decimal(env.get_stop_loss_rate())
+    if stopLossRate < 0:
+        raise Exception('🔴 BYBIT_STOP_LOSS_PERCENT cannot be less than 0')
+
+    reqBody = {
+        "category": "linear",
+        "symbol": symbol,
+        "positionIdx": positionIdx
+    }
+
+    sign = Decimal("-1.0") if isReverse else Decimal("1.0")
+    if positionIdx == 1: # long position
+        sign *= Decimal("-1.0")
+    
+    stopLossPrice = Decimal(avgPrice) + sign * Decimal(positionValue) * stopLossRate
+
+    if isReverse:
+        reqBody['takeProfit'] = "%.2f" % stopLossPrice
+        reqBody['stopLoss'] = "0.00"
+    else:
+        reqBody['takeProfit'] = "0.00"
+        reqBody['stopLoss'] = "%.2f" % stopLossPrice
+
+    if reqBody['takeProfit'] == position['takeProfit'] and reqBody['stopLoss'] == position['stopLoss']:
+        return
+
+    logger.info('[%s] Set stop loss: %.2f' % (symbol, stopLossPrice))
+
+    headers = getAuthHeaders(
+        env.get_source_account_api_key(),
+        env.get_source_account_api_secret(),
+        json.dumps(reqBody)
+    )
+    headers['Content-Type'] = 'application/json'
+    response = requests.post(url=url, headers=headers, json=reqBody)
+    data = response.json()
+    return data
+
+def syncCopyAccountToSourceAccountAndSetSL():
+    sourcePositions = getSourceAccountPositions()
+    copyPositions = getCopyAccountPositions()
+
+    if not sourcePositions or sourcePositions['retCode'] != 0 :
         raise Exception('Cannot get position of source account')
-    if not copyOrders or copyOrders['retCode'] != 0:
+    if not copyPositions or copyPositions['retCode'] != 0:
         raise Exception('Cannot get position of copy account')
     
     logger.info('')
@@ -99,26 +152,35 @@ def syncCopyAccountToSourceAccount():
     ethSourcePosition = Decimal('0')
     btcCopyPosition = Decimal('0')
     ethCopyPosition = Decimal('0')
-    leverageRatio = Decimal(env.LEVERAGE_RATIO)
+    leverageRatio = Decimal(env.get_leverage_ratio())
 
     logger.info('Leverage: {}'.format(leverageRatio))
     
-    for order in sourceOrders['result']['list']:
-        size = Decimal(order['size'])
-        if order['symbol'] == 'BTCUSDT':
-            btcSourcePosition = size if order['side'] == 'Buy' else -size
-        elif order['symbol'] == 'ETHUSDT':
-            ethSourcePosition = size if order['side'] == 'Buy' else -size
+    for position in sourcePositions['result']['list']:
+        # set stop loss
+        response = setStopLossForSymbol(
+            position['symbol'], 
+            position
+        )
+        if response['retCode'] != 0:
+            logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], response['retMsg']))
+
+        # record position size
+        size = Decimal(position['size'])
+        if position['symbol'] == BTC_SYMBOL:
+            btcSourcePosition = size if position['side'] == 'Buy' else -size
+        elif position['symbol'] == ETH_SYMBOL:
+            ethSourcePosition = size if position['side'] == 'Buy' else -size
     logger.info('Current Source positions:')
     logger.info('> BTC: {}'.format(btcSourcePosition))
     logger.info('> ETH: {}'.format(ethSourcePosition))
     
-    for order in copyOrders['result']['list']:
-        size = Decimal(order['size'])
-        if order['symbol'] == 'BTCUSDT':
-            btcCopyPosition = size if order['side'] == 'Buy' else -size
-        elif order['symbol'] == 'ETHUSDT':
-            ethCopyPosition = size if order['side'] == 'Buy' else -size
+    for position in copyPositions['result']['list']:
+        size = Decimal(position['size'])
+        if position['symbol'] == BTC_SYMBOL:
+            btcCopyPosition = size if position['side'] == 'Buy' else -size
+        elif position['symbol'] == ETH_SYMBOL:
+            ethCopyPosition = size if position['side'] == 'Buy' else -size
 
     logger.info('Current Copy positions:')
     logger.info('> BTC: {}'.format(btcCopyPosition))
@@ -137,7 +199,7 @@ def syncCopyAccountToSourceAccount():
         side = 'Buy' if btcOrderQty > 0.0 else 'Sell'
         logger.info('⌛ Submitting BTC order ({}) ...'.format(btcOrderQty))
         try:
-            res = makeOrder(quantity=str(abs(btcOrderQty)), symbol='BTCUSDT', side=side)
+            res = makeOrder(quantity=str(abs(btcOrderQty)), symbol=BTC_SYMBOL, side=side)
             if 'retCode' in res and res['retCode'] == 0:
                 logger.info('🟢 BTC order submitted')
             else:
@@ -149,7 +211,7 @@ def syncCopyAccountToSourceAccount():
         side = 'Buy' if ethOrderQty > 0.0 else 'Sell'
         logger.info('⌛ Submitting ETH order ({}) ...'.format(ethOrderQty))
         try:
-            res = makeOrder(quantity=str(abs(ethOrderQty)), symbol='ETHUSDT', side=side)
+            res = makeOrder(quantity=str(abs(ethOrderQty)), symbol=ETH_SYMBOL, side=side)
             if 'retCode' in res and  res['retCode'] == 0:
                 logger.info('🟢 ETH order submitted')
             else:
@@ -161,3 +223,6 @@ def syncCopyAccountToSourceAccount():
         logger.info('✅ Positions Already Up-to-date')
 
     logger.info('============ Sync Complete ============')
+
+if __name__ == '__main__':
+    syncCopyAccountToSourceAccountAndSetSL()
