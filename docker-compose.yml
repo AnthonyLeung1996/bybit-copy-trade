@@ -13,5 +13,6 @@ services:
       - BYBIT_SOURCE_ACCOUNT_API_HOST
       - BYBIT_COPY_ACCOUNT_API_HOST
       - BYBIT_LEVERAGE_RATIO
+      - BYBIT_STOP_LOSS_RATE
     volumes:
       - ./logs:/logs/
