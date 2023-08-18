@@ -38,7 +38,7 @@ docker-compose up --no-deps --build --detach
 
 Following the log:
 ```bash
-docker-compose logs -f --tail 30
+docker-compose logs -f --no-log-prefix --tail 30
 ```
 
 ## Environment variables vequired
@@ -87,5 +87,5 @@ Note that the copy account need to use "One-Way Mode" setting for both ETHUSDT a
 
 1. Change environment variable `BYBIT_LEVERAGE_RATIO` or `BYBIT_STOP_LOSS_RATE` by `vim ~/.bash_profile`.
 2. Apply the profile to terminal: `source ~/.bash_profile`.
-3. Rebuild and restart the docker-compose: `docker-compose up --build --detach`
+3. Rebuild and restart the docker-compose: `docker-compose up --no-deps --build --detach`
 4. Done, the app will update the positions itself.
