@@ -157,13 +157,15 @@ def syncCopyAccountToSourceAccountAndSetSL():
     logger.info('Leverage: {}'.format(leverageRatio))
     
     for position in sourcePositions['result']['list']:
+        print(position)
         # set stop loss
         response = setStopLossForSymbol(
             position['symbol'], 
             position
         )
-        if response['retCode'] != 0:
-            logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], response['retMsg']))
+        print('set stop loss response: %s' % response)
+        if 'retCode' in response and response['retCode'] != 0:
+            logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], response))
 
         # record position size
         size = Decimal(position['size'])
@@ -171,6 +173,7 @@ def syncCopyAccountToSourceAccountAndSetSL():
             btcSourcePosition = size if position['side'] == 'Buy' else -size
         elif position['symbol'] == ETH_SYMBOL:
             ethSourcePosition = size if position['side'] == 'Buy' else -size
+
     logger.info('Current Source positions:')
     logger.info('> BTC: {}'.format(btcSourcePosition))
     logger.info('> ETH: {}'.format(ethSourcePosition))
