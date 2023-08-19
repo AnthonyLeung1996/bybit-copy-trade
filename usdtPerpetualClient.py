@@ -157,13 +157,13 @@ def syncCopyAccountToSourceAccountAndSetSL():
     logger.info('Leverage: {}'.format(leverageRatio))
     
     for position in sourcePositions['result']['list']:
-        print(position)
+        logger.info(position)
         # set stop loss
         response = setStopLossForSymbol(
             position['symbol'], 
             position
         )
-        print('set stop loss response: %s' % response)
+        logger.info('set stop loss response: %s' % response)
         if 'retCode' in response and response['retCode'] != 0:
             logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], response))
 
