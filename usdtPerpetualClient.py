@@ -122,6 +122,7 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
         reqBody['stopLoss'] = "%.2f" % stopLossPrice
 
     if reqBody['takeProfit'] == position['takeProfit'] and reqBody['stopLoss'] == position['stopLoss']:
+        logger.info('[%s] stop loss unchanged' % (symbol))
         return
 
     logger.info('[%s] Set stop loss: %.2f' % (symbol, stopLossPrice))
@@ -163,9 +164,11 @@ def syncCopyAccountToSourceAccountAndSetSL():
             position['symbol'], 
             position
         )
-        logger.info('set stop loss response: %s' % response)
-        if 'retCode' in response and response['retCode'] != 0:
-            logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], response))
+
+        if response:
+            logger.info('set stop loss response:', response)
+            if 'retCode' in response and response['retCode'] != 0:
+                logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], str(response)))
 
         # record position size
         size = Decimal(position['size'])
