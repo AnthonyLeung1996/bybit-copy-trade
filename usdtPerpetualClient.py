@@ -86,10 +86,16 @@ def makeOrder(quantity: str, symbol: Literal['BTCUSDT', 'ETHUSDT'], side: Litera
     data = response.json()
     return data
 
+def findStopLossPrice(markPrice, stopLossRate, leverage, sign):
+    # stopLossRate = (sign * stopLossPrice - markPrice) / markPrice * leverage
+    # stopLossPrice = (stopLossRate / leverage * markPrice + markPrice) / sign
+    return (stopLossRate / leverage * markPrice + markPrice) / sign
+
 def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     positionIdx = position['positionIdx']
-    markPrice = position['markPrice']
-    positionValue = position['positionValue']
+    markPrice = Decimal(position['markPrice'])
+    positionLeverage = Decimal(position['leverage'])
+
     endpoint = '/v5/position/trading-stop'
     url = env.get_source_account_api_host() + endpoint
 
@@ -112,7 +118,7 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     if positionIdx == 1: # long position
         sign *= Decimal("-1.0")
     
-    stopLossPrice = Decimal(markPrice) + sign * Decimal(positionValue) * stopLossRate
+    stopLossPrice = findStopLossPrice(markPrice, stopLossRate, positionLeverage, sign)
 
     if isReverse:
         reqBody['takeProfit'] = "%.2f" % stopLossPrice
@@ -123,14 +129,15 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
         
     logger.info('[%s] Set stop loss: %.2f' % (symbol, stopLossPrice))
 
-    headers = getAuthHeaders(
-        env.get_source_account_api_key(),
-        env.get_source_account_api_secret(),
-        json.dumps(reqBody)
-    )
-    headers['Content-Type'] = 'application/json'
-    response = requests.post(url=url, headers=headers, json=reqBody)
-    data = response.json()
+    # headers = getAuthHeaders(
+    #     env.get_source_account_api_key(),
+    #     env.get_source_account_api_secret(),
+    #     json.dumps(reqBody)
+    # )
+    # headers['Content-Type'] = 'application/json'
+    # response = requests.post(url=url, headers=headers, json=reqBody)
+    # data = response.json()
+    data = None
     return data
 
 def syncCopyAccountToSourceAccountAndSetSL():
@@ -150,8 +157,10 @@ def syncCopyAccountToSourceAccountAndSetSL():
     btcCopyPosition = Decimal('0')
     ethCopyPosition = Decimal('0')
     leverageRatio = Decimal(env.get_leverage_ratio())
+    stopLossRate = Decimal(env.get_stop_loss_rate())
 
     logger.info('Leverage: {}'.format(leverageRatio))
+    logger.info('Stop loss rate: {}'.format(stopLossRate))
     
     for position in sourcePositions['result']['list']:
         logger.info(position)
