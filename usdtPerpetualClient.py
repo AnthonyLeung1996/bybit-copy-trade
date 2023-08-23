@@ -88,7 +88,7 @@ def makeOrder(quantity: str, symbol: Literal['BTCUSDT', 'ETHUSDT'], side: Litera
 
 def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     positionIdx = position['positionIdx']
-    avgPrice = position['avgPrice']
+    markPrice = position['markPrice']
     positionValue = position['positionValue']
     endpoint = '/v5/position/trading-stop'
     url = env.get_source_account_api_host() + endpoint
@@ -112,7 +112,7 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     if positionIdx == 1: # long position
         sign *= Decimal("-1.0")
     
-    stopLossPrice = Decimal(avgPrice) + sign * Decimal(positionValue) * stopLossRate
+    stopLossPrice = Decimal(markPrice) + sign * Decimal(positionValue) * stopLossRate
 
     if isReverse:
         reqBody['takeProfit'] = "%.2f" % stopLossPrice
