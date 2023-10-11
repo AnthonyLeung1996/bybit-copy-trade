@@ -50,6 +50,23 @@ def getActivePositions(*, apiHost: str, apiKey: str, apiSecret: str):
     data = response.json()
     return data
 
+def getWalletBalance(*, apiHost: str, apiKey: str, apiSecret: str):
+    endpoint = '/v5/account/wallet-balance'
+    url = apiHost + endpoint
+    params = {
+        'accountType': 'CONTRACT',
+        'coin': 'USDT'
+    }
+    queryStr = urllib.parse.urlencode(params)
+    authHeader = getAuthHeaders(
+        apiKey,
+        apiSecret,
+        queryStr
+    )
+    response = requests.get(url, params, headers=authHeader)
+    data = response.json()
+    return data
+
 def getSourceAccountPositions():
     return getActivePositions(
         apiHost = env.get_source_account_api_host(),
@@ -59,6 +76,13 @@ def getSourceAccountPositions():
 
 def getCopyAccountPositions():
     return getActivePositions(
+        apiHost = env.get_copy_account_api_host(),
+        apiKey = env.get_copy_account_api_key(),
+        apiSecret = env.get_copy_account_api_secret()
+    )
+
+def getCopyAccountWalletBalance():
+    return getWalletBalance(
         apiHost = env.get_copy_account_api_host(),
         apiKey = env.get_copy_account_api_key(),
         apiSecret = env.get_copy_account_api_secret()
@@ -163,7 +187,6 @@ def syncCopyAccountToSourceAccountAndSetSL():
     logger.info('Stop loss rate: {}'.format(stopLossRate))
     
     for position in sourcePositions['result']['list']:
-        logger.info(position)
         # set stop loss
         response = setStopLossForSymbol(
             position['symbol'], 
@@ -235,3 +258,6 @@ def syncCopyAccountToSourceAccountAndSetSL():
         logger.info('✅ Positions Already Up-to-date')
 
     logger.info('=========== Sync Complete ===========')
+
+if __name__ == "__main__":
+    print(getCopyAccountWalletBalance())
