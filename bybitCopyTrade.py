@@ -60,7 +60,17 @@ def on_open(ws):
         })
     )
 
+    # update orders
     usdtPerpetualClient.syncCopyAccountToSourceAccountAndSetSL()
+
+    # show current earnings
+    res = usdtPerpetualClient.getCopyAccountWalletBalance()
+    if 'retCode' in res and res['retCode'] == 0:
+        accountBalances = res['result']['list']
+        for balance in accountBalances:
+            for coin in balance['coin']:
+                if coin['coin'] == 'USDT':
+                    print("Equity: %.2f | Balance: %.2f | PL: %.2f" % (coin['equity'], coin['walletBalance'], coin['unrealisedPnl']))
     
 class CustomWebSocketApp(websocket.WebSocketApp):
     def _send_ping(self):
