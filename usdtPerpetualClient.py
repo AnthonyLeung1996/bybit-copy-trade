@@ -144,6 +144,9 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     
     stopLossPrice = findStopLossPrice(markPrice, stopLossRate, positionLeverage, sign)
 
+    if stopLossPrice < 0:
+        stopLossPrice *= Decimal("-1.0")
+
     if isReverse:
         reqBody['takeProfit'] = "%.2f" % stopLossPrice
         reqBody['stopLoss'] = "0.00"
@@ -151,7 +154,7 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
         reqBody['takeProfit'] = "0.00"
         reqBody['stopLoss'] = "%.2f" % stopLossPrice
         
-    logger.info('[%s] Set stop loss: %.2f' % (symbol, stopLossPrice))
+    logger.info('[%s] Set stop loss: %.2f (market price: %.2f)' % (symbol, stopLossPrice, markPrice))
 
     # headers = getAuthHeaders(
     #     env.get_source_account_api_key(),
