@@ -70,7 +70,10 @@ def on_open(ws):
         for balance in accountBalances:
             for coin in balance['coin']:
                 if coin['coin'] == 'USDT':
-                    print("Equity: %.2f | Balance: %.2f | PL: %.2f" % (coin['equity'], coin['walletBalance'], coin['unrealisedPnl']))
+                    equityVal = float(coin['equity'])
+                    balanceVal = float(coin['walletBalance'])
+                    plVal = float(coin['unrealisedPnl'])
+                    print("Equity: %.2f | Balance: %.2f | PL: %.2f" % (equityVal, balanceVal, plVal))
     
 class CustomWebSocketApp(websocket.WebSocketApp):
     def _send_ping(self):
