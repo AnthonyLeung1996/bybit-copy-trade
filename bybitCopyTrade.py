@@ -7,7 +7,7 @@ import time
 import env
 import usdtPerpetualClient
 from logger import logger
-from balanceReporter import BalanceReporter
+from taskScheduler import TaskScheduler
 
 def on_message(ws, message):
     messageDict = {}
@@ -65,20 +65,8 @@ def on_open(ws):
     usdtPerpetualClient.syncCopyAccountToSourceAccountAndSetSL()
 
     # report balance
-    balanceReporter = BalanceReporter(3600.0, reportWalletBalance)
+    balanceReporter = TaskScheduler(3600.0, usdtPerpetualClient.reportWalletBalance)
     balanceReporter.start()
-
-def reportWalletBalance():
-    res = usdtPerpetualClient.getCopyAccountWalletBalance()
-    if 'retCode' in res and res['retCode'] == 0:
-        accountBalances = res['result']['list']
-        for balance in accountBalances:
-            for coin in balance['coin']:
-                if coin['coin'] == 'USDT':
-                    equityVal = float(coin['equity'])
-                    balanceVal = float(coin['walletBalance'])
-                    plVal = float(coin['unrealisedPnl'])
-                    logger.info("Equity: %.2f | Balance: %.2f | PL: %.2f" % (equityVal, balanceVal, plVal))
     
 class CustomWebSocketApp(websocket.WebSocketApp):
     def _send_ping(self):
