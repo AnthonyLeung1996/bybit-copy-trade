@@ -265,7 +265,7 @@ if __name__ == "__main__":
         accountBalances = res['result']['list']
         for balance in accountBalances:
             for coin in balance['coin']:
-                if coin == 'USDT':
+                if coin['coin'] == 'USDT':
                     print('Net Equity:', coin['equity'])
                     print('Wallet Balance:', coin['walletBalance'])
                     print('Unrealized PL', coin['unrealisedPnl'])
