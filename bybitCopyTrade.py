@@ -73,7 +73,7 @@ def on_open(ws):
                     equityVal = float(coin['equity'])
                     balanceVal = float(coin['walletBalance'])
                     plVal = float(coin['unrealisedPnl'])
-                    print("Equity: %.2f | Balance: %.2f | PL: %.2f" % (equityVal, balanceVal, plVal))
+                    logger.info("Equity: %.2f | Balance: %.2f | PL: %.2f" % (equityVal, balanceVal, plVal))
     
 class CustomWebSocketApp(websocket.WebSocketApp):
     def _send_ping(self):

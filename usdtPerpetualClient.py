@@ -266,6 +266,7 @@ if __name__ == "__main__":
         for balance in accountBalances:
             for coin in balance['coin']:
                 if coin['coin'] == 'USDT':
-                    print('Net Equity:', coin['equity'])
-                    print('Wallet Balance:', coin['walletBalance'])
-                    print('Unrealized PL', coin['unrealisedPnl'])
+                    equityVal = float(coin['equity'])
+                    balanceVal = float(coin['walletBalance'])
+                    plVal = float(coin['unrealisedPnl'])
+                    print("Equity: %.2f | Balance: %.2f | PL: %.2f" % (equityVal, balanceVal, plVal))
