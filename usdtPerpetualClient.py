@@ -88,6 +88,18 @@ def getCopyAccountWalletBalance():
         apiSecret = env.get_copy_account_api_secret()
     )
 
+def reportWalletBalance():
+    res = getCopyAccountWalletBalance()
+    if 'retCode' in res and res['retCode'] == 0:
+        accountBalances = res['result']['list']
+        for balance in accountBalances:
+            for coin in balance['coin']:
+                if coin['coin'] == 'USDT':
+                    equityVal = float(coin['equity'])
+                    balanceVal = float(coin['walletBalance'])
+                    plVal = float(coin['unrealisedPnl'])
+                    logger.info("Equity: %.2f | Balance: %.2f | PL: %.2f" % (equityVal, balanceVal, plVal))
+
 def makeOrder(quantity: str, symbol: Literal['BTCUSDT', 'ETHUSDT'], side: Literal['Buy', 'Sell']):
     endpoint = '/v5/order/create'
     url = env.get_copy_account_api_host() + endpoint
@@ -259,6 +271,8 @@ def syncCopyAccountToSourceAccountAndSetSL():
     
     if btcOrderQty.is_zero() and ethOrderQty.is_zero():
         logger.info('✅ Positions Already Up-to-date')
+
+    reportWalletBalance()
 
     logger.info('=========== Sync Complete ===========')
 
