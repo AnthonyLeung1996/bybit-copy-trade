@@ -260,4 +260,10 @@ def syncCopyAccountToSourceAccountAndSetSL():
     logger.info('=========== Sync Complete ===========')
 
 if __name__ == "__main__":
-    print(getCopyAccountWalletBalance())
+    res = getCopyAccountWalletBalance()
+    if 'retCode' in res and res['retCode'] == 0:
+        accountBalances = res['result']['list']
+        for balance in accountBalances:
+            print('Net Equity:', balance['equity'])
+            print('Wallet Balance:', balance['walletBalance'])
+            print('Unrealized PL', balance['unrealisedPnl'])
