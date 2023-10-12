@@ -64,6 +64,10 @@ def on_open(ws):
     # update orders
     usdtPerpetualClient.syncCopyAccountToSourceAccountAndSetSL()
 
+    # report balance
+    balanceReporter = BalanceReporter(3600.0, reportWalletBalance)
+    balanceReporter.start()
+
 def reportWalletBalance():
     res = usdtPerpetualClient.getCopyAccountWalletBalance()
     if 'retCode' in res and res['retCode'] == 0:
@@ -101,6 +105,3 @@ if __name__ == "__main__":
     ws.run_forever(ping_interval=60, ping_payload=ping_body, dispatcher=rel, reconnect=5) # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
     rel.signal(2, rel.abort)  # Keyboard Interrupt
     rel.dispatch()
-
-    balanceReporter = BalanceReporter(3600.0, reportWalletBalance)
-    balanceReporter.start()
