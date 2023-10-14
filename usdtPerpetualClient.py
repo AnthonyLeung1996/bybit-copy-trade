@@ -275,6 +275,7 @@ def syncCopyAccountToSourceAccountAndSetSL():
     reportWalletBalance()
 
     logger.info('=========== Sync Complete ===========')
+    logger.info('')
 
 if __name__ == "__main__":
     res = getCopyAccountWalletBalance()
