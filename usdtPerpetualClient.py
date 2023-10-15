@@ -278,6 +278,8 @@ def setSLForAllOrders():
                 logger.info('[%s] Stop loss not modified' % (position['symbol']))
             elif response['retCode'] != 0:
                 logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], str(response)))
+            else:
+                logger.info('🟢 [%s] Stop loss has set: %s' % (position['symbol'], position['stopLoss']))
 
 if __name__ == "__main__":
     res = getCopyAccountWalletBalance()
