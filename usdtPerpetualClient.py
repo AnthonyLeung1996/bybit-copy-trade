@@ -122,14 +122,15 @@ def makeOrder(quantity: str, symbol: Literal['BTCUSDT', 'ETHUSDT'], side: Litera
     data = response.json()
     return data
 
-def findStopLossPrice(markPrice, stopLossRate, leverage, sign):
-    # sign * stopLossRate = (stopLossPrice - markPrice) / markPrice * leverage
-    # stopLossPrice = sign * stopLossRate / leverage * markPrice + markPrice
-    return sign * stopLossRate / leverage * markPrice + markPrice
+def findStopLossPrice(avgEntryPrice, stopLossRate, leverage, sign):
+    # sign * stopLossRate = (stopLossPrice - avgEntryPrice) / avgEntryPrice * leverage
+    # stopLossPrice = sign * stopLossRate / leverage * avgEntryPrice + avgEntryPrice
+    return sign * stopLossRate / leverage * avgEntryPrice + avgEntryPrice
 
 def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     positionIdx = int(position['positionIdx'])
     markPrice = Decimal(position['markPrice'])
+    avgEntryPrice = Decimal(position['avgPrice'])
     positionLeverage = Decimal(position['leverage'])
 
     endpoint = '/v5/position/trading-stop'
@@ -153,7 +154,9 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     if positionIdx == 1: # long position
         sign = Decimal("-1.0")
     
-    stopLossPrice = findStopLossPrice(markPrice, stopLossRate, positionLeverage, sign)
+    logger.info("sign = %.2f" % sign)
+    
+    stopLossPrice = findStopLossPrice(avgEntryPrice, stopLossRate, positionLeverage, sign)
 
     reqBody['takeProfit'] = "0.00"
     reqBody['stopLoss'] = "%.2f" % stopLossPrice
