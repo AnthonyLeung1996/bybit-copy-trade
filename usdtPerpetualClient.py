@@ -250,7 +250,7 @@ def syncCopyAccountToSourceAccountAndSetSL():
             logger.error('🔴 Error when submitting ETH order: {}'.format(e))
     
     if btcOrderQty.is_zero() and ethOrderQty.is_zero():
-        logger.info('✅ Positions Already Up-to-date')
+        logger.info('✅ Positions are already up-to-date')
     else:
         setSLForAllOrders()
 
@@ -274,12 +274,12 @@ def setSLForAllOrders():
         )
 
         if response and 'retCode' in response:
-            if response['retCode'] != 34040:
-                logger.info('[%s] Stop loss not modified' % (position['symbol']))
-            elif response['retCode'] != 0:
-                logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], str(response)))
-            else:
+            if response['retCode'] == 0:
                 logger.info('🟢 [%s] Stop loss has set: %s' % (position['symbol'], position['stopLoss']))
+            elif response['retCode'] == 34040:
+                logger.info('✅ [%s] Stop loss is already up-to-date' % (position['symbol']))
+            else:
+                logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], str(response)))
 
 if __name__ == "__main__":
     res = getCopyAccountWalletBalance()
