@@ -123,9 +123,9 @@ def makeOrder(quantity: str, symbol: Literal['BTCUSDT', 'ETHUSDT'], side: Litera
     return data
 
 def findStopLossPrice(markPrice, stopLossRate, leverage, sign):
-    # stopLossRate = (sign * stopLossPrice - markPrice) / markPrice * leverage
-    # stopLossPrice = (stopLossRate / leverage * markPrice + markPrice) / sign
-    return (stopLossRate / leverage * markPrice + markPrice) / sign
+    # sign * stopLossRate = (stopLossPrice - markPrice) / markPrice * leverage
+    # stopLossPrice = sign * stopLossRate / leverage * markPrice + markPrice
+    return sign * stopLossRate / leverage * markPrice + markPrice
 
 def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     positionIdx = position['positionIdx']
@@ -176,6 +176,7 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     # headers['Content-Type'] = 'application/json'
     # response = requests.post(url=url, headers=headers, json=reqBody)
     # data = response.json()
+    
     data = None
     return data
 
@@ -188,7 +189,6 @@ def syncCopyAccountToSourceAccountAndSetSL():
     if not copyPositions or copyPositions['retCode'] != 0:
         raise Exception('Cannot get position of copy account')
     
-    logger.info('')
     logger.info('============= Sync Start ============')
     
     btcSourcePosition = Decimal('0')
@@ -196,24 +196,10 @@ def syncCopyAccountToSourceAccountAndSetSL():
     btcCopyPosition = Decimal('0')
     ethCopyPosition = Decimal('0')
     leverageRatio = Decimal(env.get_leverage_ratio())
-    stopLossRate = Decimal(env.get_stop_loss_rate())
 
     logger.info('Leverage: {}'.format(leverageRatio))
-    logger.info('Stop loss rate: {}'.format(stopLossRate))
     
     for position in sourcePositions['result']['list']:
-        # set stop loss
-        response = setStopLossForSymbol(
-            position['symbol'], 
-            position
-        )
-
-        if response and 'retCode' in response:
-            if response['retCode'] != 34040:
-                logger.info('[%s] Stop loss not modified: %s' % (position['symbol']))
-            elif response['retCode'] != 0:
-                logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], str(response)))
-
         # record position size
         size = Decimal(position['size'])
         if position['symbol'] == BTC_SYMBOL:
@@ -271,11 +257,34 @@ def syncCopyAccountToSourceAccountAndSetSL():
     
     if btcOrderQty.is_zero() and ethOrderQty.is_zero():
         logger.info('✅ Positions Already Up-to-date')
+    else:
+        setSLForAllOrders()
 
     reportWalletBalance()
 
     logger.info('=========== Sync Complete ===========')
+
+def setSLForAllOrders():
+    copyPositions = getCopyAccountPositions()
+    if not copyPositions or copyPositions['retCode'] != 0:
+        raise Exception('Cannot get position of copy account')
+    
+    stopLossRate = Decimal(env.get_stop_loss_rate())
     logger.info('')
+    logger.info('Stop loss rate: {}'.format(stopLossRate))
+
+    # set stop loss
+    for position in copyPositions['result']['list']:
+        response = setStopLossForSymbol(
+            position['symbol'], 
+            position
+        )
+
+        if response and 'retCode' in response:
+            if response['retCode'] != 34040:
+                logger.info('[%s] Stop loss not modified: %s' % (position['symbol']))
+            elif response['retCode'] != 0:
+                logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], str(response)))
 
 if __name__ == "__main__":
     res = getCopyAccountWalletBalance()
