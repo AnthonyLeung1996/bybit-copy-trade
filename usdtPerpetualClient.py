@@ -275,7 +275,7 @@ def setSLForAllOrders():
 
         if response and 'retCode' in response:
             if response['retCode'] != 34040:
-                logger.info('[%s] Stop loss not modified: %s' % (position['symbol']))
+                logger.info('[%s] Stop loss not modified' % (position['symbol']))
             elif response['retCode'] != 0:
                 logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], str(response)))
 
