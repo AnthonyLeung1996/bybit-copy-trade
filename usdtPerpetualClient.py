@@ -154,8 +154,8 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     if positionIdx == 1: # long position
         sign = Decimal("-1.0")
     
-    logger.info("positionIdx = {}, sign = %.2f" % (positionIdx, sign))
-    logger.info("position: {}" % position)
+    logger.info("positionIdx = %d, sign = %.2f" % (positionIdx, sign))
+    logger.info("position: %s" % (json.dumps(position)))
     
     stopLossPrice = findStopLossPrice(avgEntryPrice, stopLossRate, positionLeverage, sign)
 
@@ -266,7 +266,6 @@ def setSLForAllOrders():
         raise Exception('Cannot get position of copy account')
     
     stopLossRate = Decimal(env.get_stop_loss_rate())
-    logger.info('')
     logger.info('Stop loss rate: {}'.format(stopLossRate))
 
     # set stop loss
