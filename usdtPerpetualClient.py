@@ -160,7 +160,7 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     reqBody['takeProfit'] = "0.00"
     reqBody['stopLoss'] = "%.2f" % stopLossPrice
         
-    logger.info('[%s] Wanted stop loss: %.2f (market price: %.2f)' % (symbol, stopLossPrice, markPrice))
+    logger.info('[%s] Wanted stop loss: %.2f | entry price: %.2f | current price: %.2f' % (symbol, stopLossPrice, avgEntryPrice, markPrice))
 
     data = None
     if stopLossPrice > 0:
