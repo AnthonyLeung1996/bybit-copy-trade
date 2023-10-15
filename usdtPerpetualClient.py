@@ -259,15 +259,15 @@ def syncCopyAccountToSourceAccountAndSetSL():
     logger.info('=========== Sync Complete ===========')
 
 def setSLForAllOrders():
-    copyPositions = getCopyAccountPositions()
-    if not copyPositions or copyPositions['retCode'] != 0:
-        raise Exception('Cannot get position of copy account')
+    sourceAccount = getSourceAccountPositions()
+    if not sourceAccount or sourceAccount['retCode'] != 0:
+        raise Exception('Cannot get position of source account')
     
     stopLossRate = Decimal(env.get_stop_loss_rate())
     logger.info('Stop loss rate: {}'.format(stopLossRate))
 
     # set stop loss
-    for position in copyPositions['result']['list']:
+    for position in sourceAccount['result']['list']:
         response = setStopLossForSymbol(
             position['symbol'], 
             position
