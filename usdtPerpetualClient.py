@@ -160,7 +160,7 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     reqBody['takeProfit'] = "0.00"
     reqBody['stopLoss'] = "%.2f" % stopLossPrice
         
-    logger.info('[%s] Set stop loss: %.2f (market price: %.2f)' % (symbol, stopLossPrice, markPrice))
+    logger.info('[%s] Wanted stop loss: %.2f (market price: %.2f)' % (symbol, stopLossPrice, markPrice))
 
     data = None
     if stopLossPrice > 0:
@@ -275,11 +275,11 @@ def setSLForAllOrders():
 
         if response and 'retCode' in response:
             if response['retCode'] == 0:
-                logger.info('🟢 [%s] Stop loss has set: %s' % (position['symbol'], position['stopLoss']))
+                logger.info('[%s] 🟢 Stop loss has set: %s' % (position['symbol'], position['stopLoss']))
             elif response['retCode'] == 34040:
-                logger.info('✅ [%s] Stop loss is already up-to-date' % (position['symbol']))
+                logger.info('[%s] ✅ Stop loss is already up-to-date' % (position['symbol']))
             else:
-                logger.info('🔴 [%s] Failed to set stop loss: %s' % (position['symbol'], str(response)))
+                logger.info('[%s] 🔴 Failed to set stop loss: %s' % (position['symbol'], str(response)))
 
 if __name__ == "__main__":
     res = getCopyAccountWalletBalance()
