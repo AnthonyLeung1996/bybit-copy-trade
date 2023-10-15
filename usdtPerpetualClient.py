@@ -128,7 +128,7 @@ def findStopLossPrice(markPrice, stopLossRate, leverage, sign):
     return sign * stopLossRate / leverage * markPrice + markPrice
 
 def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
-    positionIdx = position['positionIdx']
+    positionIdx = int(position['positionIdx'])
     markPrice = Decimal(position['markPrice'])
     positionLeverage = Decimal(position['leverage'])
 
@@ -139,7 +139,6 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     if leverageRatio.is_zero():
         return
 
-    isReverse = leverageRatio < 0
     stopLossRate = Decimal(env.get_stop_loss_rate())
     if stopLossRate < 0:
         raise Exception('🔴 BYBIT_STOP_LOSS_PERCENT cannot be less than 0')
@@ -150,21 +149,14 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
         "positionIdx": positionIdx
     }
 
-    sign = Decimal("-1.0") if isReverse else Decimal("1.0")
+    sign = Decimal("1.0")
     if positionIdx == 1: # long position
-        sign *= Decimal("-1.0")
+        sign = Decimal("-1.0")
     
     stopLossPrice = findStopLossPrice(markPrice, stopLossRate, positionLeverage, sign)
 
-    if stopLossPrice < 0:
-        stopLossPrice *= Decimal("-1.0")
-
-    if isReverse:
-        reqBody['takeProfit'] = "%.2f" % stopLossPrice
-        reqBody['stopLoss'] = "0.00"
-    else:
-        reqBody['takeProfit'] = "0.00"
-        reqBody['stopLoss'] = "%.2f" % stopLossPrice
+    reqBody['takeProfit'] = "0.00"
+    reqBody['stopLoss'] = "%.2f" % stopLossPrice
         
     logger.info('[%s] Set stop loss: %.2f (market price: %.2f)' % (symbol, stopLossPrice, markPrice))
 
