@@ -162,16 +162,16 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
         
     logger.info('[%s] Set stop loss: %.2f (market price: %.2f)' % (symbol, stopLossPrice, markPrice))
 
-    # headers = getAuthHeaders(
-    #     env.get_source_account_api_key(),
-    #     env.get_source_account_api_secret(),
-    #     json.dumps(reqBody)
-    # )
-    # headers['Content-Type'] = 'application/json'
-    # response = requests.post(url=url, headers=headers, json=reqBody)
-    # data = response.json()
-    
     data = None
+    if stopLossPrice > 0:
+        headers = getAuthHeaders(
+            env.get_source_account_api_key(),
+            env.get_source_account_api_secret(),
+            json.dumps(reqBody)
+        )
+        headers['Content-Type'] = 'application/json'
+        response = requests.post(url=url, headers=headers, json=reqBody)
+        data = response.json()
     return data
 
 def syncCopyAccountToSourceAccountAndSetSL():
