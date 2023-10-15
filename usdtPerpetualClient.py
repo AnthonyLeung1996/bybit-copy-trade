@@ -125,7 +125,7 @@ def makeOrder(quantity: str, symbol: Literal['BTCUSDT', 'ETHUSDT'], side: Litera
 def findStopLossPrice(avgEntryPrice, stopLossRate, leverage, sign):
     # sign * stopLossRate = (stopLossPrice - avgEntryPrice) / avgEntryPrice * leverage
     # stopLossPrice = sign * stopLossRate / leverage * avgEntryPrice + avgEntryPrice
-    return sign * stopLossRate / leverage * avgEntryPrice + avgEntryPrice
+    return avgEntryPrice * (Decimal("1.0") + sign * stopLossRate / leverage)
 
 def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     positionIdx = int(position['positionIdx'])
@@ -154,7 +154,8 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     if positionIdx == 1: # long position
         sign = Decimal("-1.0")
     
-    logger.info("sign = %.2f" % sign)
+    logger.info("positionIdx = {}, sign = %.2f" % (positionIdx, sign))
+    logger.info("position: {}" % position)
     
     stopLossPrice = findStopLossPrice(avgEntryPrice, stopLossRate, positionLeverage, sign)
 
