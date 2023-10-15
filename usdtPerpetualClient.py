@@ -128,7 +128,8 @@ def findStopLossPrice(avgEntryPrice, stopLossRate, leverage, sign):
     return avgEntryPrice * (Decimal("1.0") + sign * stopLossRate / leverage)
 
 def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
-    positionIdx = int(position['positionIdx'])
+    side = position['side']
+    positionIdx = position['positionIdx']
     markPrice = Decimal(position['markPrice'])
     avgEntryPrice = Decimal(position['avgPrice'])
     positionLeverage = Decimal(position['leverage'])
@@ -151,11 +152,8 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
     }
 
     sign = Decimal("1.0")
-    if positionIdx == 1: # long position
+    if side == 'Buy': # long position
         sign = Decimal("-1.0")
-    
-    logger.info("positionIdx = %d, sign = %.2f" % (positionIdx, sign))
-    logger.info("position: %s" % (json.dumps(position)))
     
     stopLossPrice = findStopLossPrice(avgEntryPrice, stopLossRate, positionLeverage, sign)
 
