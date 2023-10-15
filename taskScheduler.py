@@ -14,7 +14,6 @@ class TaskScheduler:
             self.actionFunction()
         
     def start(self):
-        self.actionFunction()
         thread = threading.Thread(target = self.__workerFunction)
         thread.start()
 
