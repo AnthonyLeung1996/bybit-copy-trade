@@ -63,6 +63,7 @@ def on_open(ws):
 
     # update orders
     usdtPerpetualClient.syncCopyAccountToSourceAccountAndSetSL()
+    usdtPerpetualClient.setSLForAllOrders()
 
     # report balance
     balanceReporter = TaskScheduler(3600.0, usdtPerpetualClient.reportWalletBalance)
