@@ -142,8 +142,8 @@ def setStopLossForSymbol(symbol: Literal['BTCUSDT', 'ETHUSDT'], position):
         return
 
     stopLossRate = Decimal(env.get_stop_loss_rate())
-    if stopLossRate < 0:
-        raise Exception('🔴 BYBIT_STOP_LOSS_PERCENT cannot be less than 0')
+    if stopLossRate <= 0:
+        raise Exception('🔴 BYBIT_STOP_LOSS_PERCENT cannot be less than or equal to 0')
 
     reqBody = {
         "category": "linear",
@@ -264,7 +264,13 @@ def setSLForAllOrders():
         raise Exception('Cannot get position of source account')
     
     stopLossRate = Decimal(env.get_stop_loss_rate())
-    logger.info('Stop loss rate: {}'.format(stopLossRate))
+    
+
+    if stopLossRate.is_zero():
+        logger.info('Stop loss rate: {}'.format(stopLossRate))
+    else:
+        logger.info('Skip stop loss')
+        return
 
     # set stop loss
     for position in sourceAccount['result']['list']:
