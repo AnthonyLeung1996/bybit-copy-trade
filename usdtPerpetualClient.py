@@ -266,7 +266,7 @@ def setSLForAllOrders():
     stopLossRate = Decimal(env.get_stop_loss_rate())
     
 
-    if stopLossRate.is_zero():
+    if not stopLossRate.is_zero():
         logger.info('Stop loss rate: {}'.format(stopLossRate))
     else:
         logger.info('Skip stop loss')
