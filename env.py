@@ -1,4 +1,5 @@
 import os
+from decimal import Decimal
 
 def get_websocket_channel():
     return os.environ['BYBIT_WEBSOCKET_CHANNEL']
@@ -40,3 +41,9 @@ if any(filter(lambda x: x == None, [
     get_stop_loss_rate()
     ])):
     raise Exception("Please provide all the required environment variables.")
+
+if Decimal(get_stop_loss_rate()) > 0.5:
+    raise Exception('Stop loss rate too large')
+
+if Decimal(get_stop_loss_rate()) < 0:
+    raise Exception('Stop loss rate cannot be negative')
