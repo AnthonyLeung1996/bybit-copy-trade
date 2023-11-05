@@ -81,7 +81,7 @@ class CustomWebSocketApp(websocket.WebSocketApp):
                     self.sock.send(self.ping_payload)
                 except Exception as ex:
                     logger.error("Failed to send ping: %s", ex)
-                    websocket.error("Failed to send ping: %s", ex)
+                    websocket.error("Failed to send ping: {}".format(ex))
 
 if __name__ == "__main__":
     ping_body = json.dumps({
