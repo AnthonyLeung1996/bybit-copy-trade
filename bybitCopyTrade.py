@@ -64,10 +64,6 @@ def on_open(ws):
     # update orders
     usdtPerpetualClient.syncCopyAccountToSourceAccountAndSetSL()
     usdtPerpetualClient.setSLForAllOrders()
-
-    # report balance
-    balanceReporter = TaskScheduler(3600.0, usdtPerpetualClient.reportWalletBalance)
-    balanceReporter.start()
     
 class CustomWebSocketApp(websocket.WebSocketApp):
     def _send_ping(self):
@@ -85,6 +81,10 @@ class CustomWebSocketApp(websocket.WebSocketApp):
                     raise Exception("Failed to send ping, exit program")
 
 if __name__ == "__main__":
+    # report balance periodically
+    balanceReporter = TaskScheduler(1800.0, usdtPerpetualClient.reportWalletBalance)
+    balanceReporter.start()
+
     ping_body = json.dumps({
         "op": "ping"
     })
