@@ -78,7 +78,7 @@ class CustomWebSocketApp(websocket.WebSocketApp):
                 except Exception as ex:
                     logger.error("Failed to send ping: %s", ex)
                     websocket.error("Failed to send ping: {}".format(ex))
-                    raise Exception("Failed to send ping, exit program")
+                    exit(0)
 
 if __name__ == "__main__":
     # report balance periodically
