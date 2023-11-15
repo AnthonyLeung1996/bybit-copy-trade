@@ -15,6 +15,7 @@ class TaskScheduler:
         
     def start(self):
         thread = threading.Thread(target = self.__workerFunction)
+        thread.setDaemon(True)
         thread.start()
 
     def cancel(self):
