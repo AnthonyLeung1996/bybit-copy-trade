@@ -1,5 +1,7 @@
 # bybit-copy-trade
 
+A simple python program to mirror two accounts' transactions (source and copy accounts), so that one can follow the trades made by another.
+
 ## Python version
 Following setting works for me, other similar versions may also works:
 ```
